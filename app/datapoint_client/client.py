@@ -25,6 +25,7 @@ class DatapointClient:
         url = self.BASE_URL + 'val/wxobs/all/json/{}'.format(site)
         r = requests.get(url, params=payload)
 
+        r.raise_for_status()
         return r.json()
 
     def _format_obs_data(self, data):

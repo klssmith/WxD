@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytest
+import requests
 import requests_mock
 
 from app.datapoint_client.client import DatapointClient
@@ -19,6 +21,24 @@ def test_get_all_obs_json_hits_the_correct_endpoint():
 
         client._get_all_obs_json(site)
 
+    assert m.called
+
+
+def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes():
+    client = DatapointClient('invalid-key')
+    site = 1000
+
+    with pytest.raises(requests.exceptions.HTTPError) as e, requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site, client.api_key),
+             status_code=403
+        )
+
+        client._get_all_obs_json(site)
+
+    assert e.value.response.status_code == 403
+    assert '403 Client Error' in str(e.value)
     assert m.called
 
 
