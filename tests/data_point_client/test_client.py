@@ -4,12 +4,12 @@ import pytest
 import requests
 import requests_mock
 
-from app.datapoint_client.client import DatapointClient
+from app.datapoint_client.errors import SiteError
+from tests.json_response_fixtures.all_obs_for_invalid_site import obs_json_invalid_site
 from tests.json_response_fixtures.all_obs_for_site import obs_json
 
 
-def test_get_all_obs_json_hits_the_correct_endpoint():
-    client = DatapointClient('fake-key')
+def test_get_all_obs_json_hits_the_correct_endpoint(client):
     site = 1000
 
     with requests_mock.Mocker() as m:
@@ -24,8 +24,7 @@ def test_get_all_obs_json_hits_the_correct_endpoint():
     assert m.called
 
 
-def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes():
-    client = DatapointClient('invalid-key')
+def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes(client):
     site = 1000
 
     with pytest.raises(requests.exceptions.HTTPError) as e, requests_mock.Mocker() as m:
@@ -42,8 +41,7 @@ def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes():
     assert m.called
 
 
-def test_get_all_obs_for_site_returns_an_entry_for_each_ob_in_the_expected_format():
-    client = DatapointClient('fake-key')
+def test_get_all_obs_for_site_returns_an_entry_for_each_ob_in_the_expected_format(client):
     site = 3772
 
     with requests_mock.Mocker() as m:
@@ -59,3 +57,18 @@ def test_get_all_obs_for_site_returns_an_entry_for_each_ob_in_the_expected_forma
     assert result[datetime(2018, 3, 3, 0, 0)] == {
         'W': '8', 'S': '9', 'Pt': 'F', 'P': '992', 'V': '2700', 'Dp': '-0.2', 'H': '95.0', 'T': '0.5', 'D': 'ENE'
     }
+
+
+def test_get_all_obs_for_site_raises_error_for_invalid_site_id(client):
+    site = 0
+
+    with pytest.raises(SiteError) as e, requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site, client.api_key),
+            json=obs_json_invalid_site
+        )
+        client.get_all_obs_for_site(site)
+
+    assert e.type == SiteError
+    assert str(e.value) == 'Site ID used is not valid'

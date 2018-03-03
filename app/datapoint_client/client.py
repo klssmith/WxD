@@ -3,6 +3,8 @@ from datetime import datetime
 
 import requests
 
+from app.datapoint_client.errors import SiteError
+
 
 class DatapointClient:
     BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
@@ -32,7 +34,11 @@ class DatapointClient:
         """
         Convert the JSON response into an OrderedDict containing the datetime as the key.
         """
-        data = data['SiteRep']['DV']['Location']['Period']
+        if data['SiteRep']['DV'].get('Location'):
+            data = data['SiteRep']['DV']['Location']['Period']
+        else:
+            raise SiteError('Site ID used is not valid')
+
         od = OrderedDict()
 
         for day_dict in data:
