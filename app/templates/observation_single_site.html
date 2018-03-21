@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WxD</title>
+  </head>
+  <body>
+    <h1>WxD</h1>
+    <p>
+      Here are all the weather observations:
+    </p>
+    <div>
+      {% for date, content in obs.items() %}
+        <p><b>{{ date }}</b></p>
+        {% for description, value in content.items() %}
+          <p>{{ description }}: {{ value }}</p>
+        {% endfor %}
+        <hr />
+      {% endfor %}
+    </div>
+  </body>
+</html>
