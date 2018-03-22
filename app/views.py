@@ -13,7 +13,7 @@ def index():
 
 
 @app.route('/observations/<int:site_id>')
-def site(site_id):
+def site_observation(site_id):
     client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
 
     try:
