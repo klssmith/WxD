@@ -1,21 +1,38 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>WxD</title>
-  </head>
-  <body>
-    <h1>WxD</h1>
-    <p>
-      Here are all the weather observations:
-    </p>
-    <div>
-      {% for date, content in obs.items() %}
-        <p><b>{{ date }}</b></p>
-        {% for description, value in content.items() %}
-          <p>{{ description }}: {{ value }}</p>
-        {% endfor %}
-        <hr />
-      {% endfor %}
-    </div>
-  </body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div>
+  <h1>Weather Observations</h1>
+</div>
+<div>
+  <table class="table table-striped table-responsive">
+    <thead>
+      <tr>
+        <th scope="col">Date &amp; time</th>
+        <th scope="col">Weather</th>
+        <th scope="col">Temperature, &#x2103;</th>
+        <th scope="col">Dew<br />point, &#x2103;</th>
+        <th scope="col">Relative<br />humidity, %</th>
+        <th scope="col">Wind, mph</th>
+        <th scope="col">Wind<br />Gust, mph</th>
+        <th scope="col">Pressure, hPa</th>
+        <th scope="col">Visibility, m</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for date, content in obs.items() %}
+      <tr>
+        <th scope="row">{{ date }}</th>
+        <td>{{ obs[date]['Weather Type'] }}</td>
+        <td>{{ obs[date]['Temperature'] }}</td>
+        <td>{{ obs[date]['Dew Point'] }}</td>
+        <td>{{ obs[date]['Screen Relative Humidity'] }}</td>
+        <td>{{ obs[date]['Wind Speed'] }}, {{ obs[date]['Wind Direction'] }}</td>
+        <td>{{ obs[date]['Wind Gust'] }}</td>
+        <td>{{ obs[date]['Pressure'] }}<br />{{ obs[date]['Pressure Tendency'] }}</td>
+        <td>{{ obs[date]['Visibility'] }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

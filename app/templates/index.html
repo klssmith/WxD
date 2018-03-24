@@ -1,12 +1,14 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>WxD</title>
-  </head>
-  <body>
-    <h1>WxD</h1>
-    <p>
-      Here is the weather for a single place
-    </p>
-  </body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div>
+  <h1>WxD</h1>
+</div>
+<div>
+  <p>
+    This is the WxD homepage.
+  </p>
+  <p>
+    You can view all weather observations for Heathrow <a href="{{ url_for('site_observation', site_id=3772) }}">here</a>.
+  </p>
+</div>
+{% endblock %}
