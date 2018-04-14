@@ -27,7 +27,7 @@ def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes(dp_client)
         m.get(
             'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
              site, dp_client.api_key),
-             status_code=403
+            status_code=403
         )
 
         dp_client._get_all_obs_json(site)
@@ -38,7 +38,22 @@ def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes(dp_client)
 
 
 def test_validate_site_and_format_obs_calls_format_observations_function(mocker, dp_client):
-    data = {'SiteRep': {'Wx': {'Param': []}, 'DV': {'type': 'Obs', 'Location': {'name': 'HEATHROW', 'Period': [], 'type': 'Day', 'value': '2018-03-15Z'}, 'lat': '51.479', 'i': '3772', 'country': 'ENGLAND', 'elevation': '25.0', 'continent': 'EUROPE', 'lon': '-0.449'}, 'dataDate': '2018-03-15T19:00:00Z'}}
+    data = {
+        'SiteRep': {
+            'Wx': {'Param': []},
+            'DV': {
+                'type': 'Obs',
+                'Location': {'name': 'HEATHROW', 'Period': [], 'type': 'Day', 'value': '2018-03-15Z'},
+                'lat': '51.479',
+                'i': '3772',
+                'country': 'ENGLAND',
+                'elevation': '25.0',
+                'continent': 'EUROPE',
+                'lon': '-0.449'
+            },
+            'dataDate': '2018-03-15T19:00:00Z'
+        }
+    }
 
     m = mocker.patch('app.datapoint_client.client.format_observations')
     dp_client._validate_site_and_format_obs(data)
