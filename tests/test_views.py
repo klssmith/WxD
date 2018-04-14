@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests_mock
+import pytest
 
 from flask import url_for
 
@@ -46,3 +47,28 @@ def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_clie
     response = test_client.get(url_for('site_observation', site_id=1000))
 
     assert response.status_code == 404
+
+
+@pytest.mark.parametrize('status_code,page_heading', [
+    (403, 'Forbidden'),
+    (404, 'Page not found'),
+    (500, 'Something went wrong'),
+])
+def test_error_pages(mocker, dp_client, test_client, status_code, page_heading):
+    mocker.patch('app.views.DatapointClient', return_value=dp_client)
+    site = 1000
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site, dp_client.api_key),
+            status_code=status_code
+        )
+
+        response = test_client.get(url_for('site_observation', site_id=site))
+
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert page.title.string == 'WxD'
+    assert page.h1.string == page_heading
+    assert response.status_code == status_code
