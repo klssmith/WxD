@@ -1,13 +1,44 @@
+from bs4 import BeautifulSoup
+import requests_mock
+
 from flask import url_for
 
 from app.datapoint_client.errors import SiteError
-
+from tests.json_fixtures.all_obs_for_site import obs_json
 
 def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client):
     mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site')
     response = test_client.get(url_for('site_observation', site_id=3772))
 
     assert response.status_code == 200
+
+
+def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client):
+    mocker.patch('app.views.DatapointClient', return_value=dp_client)
+    site = 1000
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site, dp_client.api_key),
+            json=obs_json
+        )
+
+        response = test_client.get(url_for('site_observation', site_id=site))
+
+    assert response.status_code == 200
+
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    dates = page.tbody.find_all('th')
+    assert dates[0].string == '2018-03-02 23:00:00'
+    assert dates[1].string == '2018-03-03 00:00:00'
+    assert dates[2].string == '2018-03-03 01:00:00'
+
+    weather_obs = page.tbody.tr.find_all('td')
+    assert weather_obs[0].string == 'Mist'
+    assert weather_obs[4].string == '11, E'
+    assert weather_obs[5].string is None
 
 
 def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_client):
