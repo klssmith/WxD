@@ -54,7 +54,7 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
     weather_obs = page.tbody.tr.find_all('td')
     assert weather_obs[0].string == 'Mist'
-    assert weather_obs[4].string == '11, E'
+    assert weather_obs[4].string == '11 E'
     assert weather_obs[5].string is None
 
 
