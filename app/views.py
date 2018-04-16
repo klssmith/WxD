@@ -6,11 +6,18 @@ from flask import abort, render_template
 from app import app
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
+from app.datapoint_client.obs_sites import SITE_CODES
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/observations')
+def all_site_observations():
+    sites = SITE_CODES
+    return render_template('observation_sites.html', sites=sites)
 
 
 @app.route('/observations/<int:site_id>')

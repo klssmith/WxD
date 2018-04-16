@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from bs4 import BeautifulSoup
 import requests_mock
 import pytest
@@ -6,6 +8,19 @@ from flask import url_for
 
 from app.datapoint_client.errors import SiteError
 from tests.json_fixtures.all_obs_for_site import obs_json
+
+
+def test_all_site_observations_each_site_name_links_to_its_obs_page(mocker, test_client):
+    mock_site_list = OrderedDict([('Capel Curig', 3305), ('Scampton', 3373)])
+    mocker.patch('app.views.SITE_CODES', mock_site_list)
+    response = test_client.get(url_for('all_site_observations'))
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    link_one = page.find('a', string='Capel Curig')
+    assert link_one['href'] == '/observations/3305'
+
+    link_two = page.find('a', string='Scampton')
+    assert link_two['href'] == '/observations/3373'
 
 
 def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client):
