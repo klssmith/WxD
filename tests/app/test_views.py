@@ -23,27 +23,45 @@ def test_all_site_observations_each_site_name_links_to_its_obs_page(mocker, test
     assert link_two['href'] == '/observations/3373'
 
 
-def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client):
+def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client, site):
     mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site')
-    response = test_client.get(url_for('site_observation', site_id=3772))
+    mocker.patch('app.views.dao_get_site_by_id', return_value=site)
+
+    response = test_client.get(url_for('site_observation', site_id=site.id))
 
     assert response.status_code == 200
 
 
-def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client):
+def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, site):
     mocker.patch('app.views.DatapointClient', return_value=dp_client)
-    site = 1000
+    mocker.patch('app.views.dao_get_site_by_id', return_value=site)
 
     with requests_mock.Mocker() as m:
         m.get(
             'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
-             site, dp_client.api_key),
+             site.id, dp_client.api_key),
             json=obs_json
         )
 
-        response = test_client.get(url_for('site_observation', site_id=site))
+        response = test_client.get(url_for('site_observation', site_id=site.id))
 
-    assert response.status_code == 200
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert page.find('h1').string == 'Weather Observations for Lochaven'
+
+
+def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client, site):
+    mocker.patch('app.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.views.dao_get_site_by_id', return_value=site)
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site.id, dp_client.api_key),
+            json=obs_json
+        )
+
+        response = test_client.get(url_for('site_observation', site_id=site.id))
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
@@ -60,8 +78,11 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
 def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_client):
     mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site', side_effect=SiteError)
+    site_mock = mocker.patch('app.views.dao_get_site_by_id')
+
     response = test_client.get(url_for('site_observation', site_id=1000))
 
+    site_mock.assert_not_called()
     assert response.status_code == 404
 
 
@@ -72,19 +93,20 @@ def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_clie
 ])
 def test_error_pages(mocker, dp_client, test_client, status_code, page_heading):
     mocker.patch('app.views.DatapointClient', return_value=dp_client)
-    site = 1000
+    site_mock = mocker.patch('app.views.dao_get_site_by_id')
 
     with requests_mock.Mocker() as m:
         m.get(
             'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
-             site, dp_client.api_key),
+             1000, dp_client.api_key),
             status_code=status_code
         )
 
-        response = test_client.get(url_for('site_observation', site_id=site))
+        response = test_client.get(url_for('site_observation', site_id=1000))
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
+    site_mock.assert_not_called()
     assert page.title.string == 'WxD'
     assert page.h1.string == page_heading
     assert response.status_code == status_code

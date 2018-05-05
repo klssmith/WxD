@@ -7,6 +7,7 @@ from app import app
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
 from app.datapoint_client.obs_sites import SITE_CODES
+from app.site_dao import dao_get_site_by_id
 
 
 @app.route('/')
@@ -30,7 +31,10 @@ def site_observation(site_id):
         abort(404)
     except requests.exceptions.HTTPError as e:
         _abort_with_appropriate_error(e)
-    return render_template('observation_single_site.html', obs=obs)
+
+    site_name = dao_get_site_by_id(site_id).name
+
+    return render_template('observation_single_site.html', obs=obs, site_name=site_name)
 
 
 def _abort_with_appropriate_error(e):
