@@ -11,6 +11,7 @@ class Site(db.Model):
     unitary_auth_area = db.Column(db.String(100))
     obs_source = db.Column(db.String(100))
     national_park = db.Column(db.String(100))
+    observations = db.Column(db.Boolean, index=True)
 
     def __repr__(self):
         return '<Site: {} {}>'.format(self.id, self.name)
