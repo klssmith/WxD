@@ -1,13 +1,15 @@
 from app import db
 from app.models import Site
+from app.site_dao import dao_get_site_by_id
 
 
-def add_data(data):
+def add_sites_to_database(data):
     '''
-    The argument <data> should be the raw content of this endpoint:
+    This function takes the list of sites for which forecast data is available and creates an entry in the database for
+    each site.
+
+    The argument <data> is the raw content of this endpoint:
     http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/sitelist?key=<API key>
-    The simplest way to run this function is to paste the contents of the endpoint above into a file, then use the file
-    content as the argument.
     '''
 
     places = data['Locations']['Location']
@@ -31,5 +33,28 @@ def add_data(data):
 
         db.session.add(site)
         print('Adding {}'.format(site.name))
+
+    db.session.commit()
+
+
+def mark_sites_which_have_observations(data):
+    '''
+    This function takes the list of sites for which observation data is available and updates the database entry for
+    that site to mark it as having observations.
+
+    This function can only be run once the forecast sites are already in the database.
+
+    The argument <data> is the raw content of this endpoint:
+    http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key=<API key>
+    '''
+
+    places = data['Locations']['Location']
+
+    for place_dict in places:
+        original_site = dao_get_site_by_id(int(place_dict['id']))
+
+        original_site.observations = True
+        db.session.add(original_site)
+        print('Updating {}'.format(original_site.name))
 
     db.session.commit()
