@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from bs4 import BeautifulSoup
 import requests_mock
 import pytest
@@ -11,8 +9,6 @@ from tests.json_fixtures.all_obs_for_site import obs_json
 
 
 def test_all_site_observations_each_site_name_links_to_its_obs_page(mocker, test_client):
-    mock_site_list = OrderedDict([('Capel Curig', 3305), ('Scampton', 3373)])
-    mocker.patch('app.views.SITE_CODES', mock_site_list)
     response = test_client.get(url_for('all_site_observations'))
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 

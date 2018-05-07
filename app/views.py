@@ -6,8 +6,7 @@ from flask import abort, render_template
 from app import app
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
-from app.datapoint_client.obs_sites import SITE_CODES
-from app.site_dao import dao_get_site_by_id
+from app.site_dao import dao_get_all_sites_with_observations, dao_get_site_by_id
 
 
 @app.route('/')
@@ -17,7 +16,7 @@ def index():
 
 @app.route('/observations')
 def all_site_observations():
-    sites = SITE_CODES
+    sites = dao_get_all_sites_with_observations()
     return render_template('observation_sites.html', sites=sites)
 
 
