@@ -3,12 +3,25 @@
 <div>
   <h1>Weather Observation Sites</h1>
 </div>
+<div class="py-2">
+  <form action="{{ url_for('results') }}">
+    <div class="row">
+      <div class="form-group col-sm-10">
+        <label class="sr-only">Search for a site</label>
+        <input class="form-control form-control-lg mx-2" name="search-term" type='text' placeholder="Search for a site by name"></input>
+      </div>
+      <div class="col-sm-2">
+        <button type="submit" class="btn btn-lg btn-info">Search</button>
+      </div>
+    </div>
+  </form>
+</div>
 <div>
-  <p>Click on a site to see all available observations:</p>
+  <p>Or select a site from the list below:</p>
   {% for site in sites %}
     <p class="site-links">
       <a href="{{ url_for('site_observation', site_id=site.id) }}">{{ site.name }}</a>
     </p>
   {% endfor %}
-</div>
+<div>
 {% endblock %}

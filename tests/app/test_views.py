@@ -13,10 +13,10 @@ def test_all_site_observations_each_site_name_links_to_its_obs_page(mocker, test
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     link_one = page.find('a', string='Capel Curig')
-    assert link_one['href'] == '/observations/3305'
+    assert link_one['href'] == url_for('site_observation',  site_id=3305)
 
     link_two = page.find('a', string='Scampton')
-    assert link_two['href'] == '/observations/3373'
+    assert link_two['href'] == url_for('site_observation',  site_id=3373)
 
 
 def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client, site):
@@ -80,6 +80,25 @@ def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_clie
 
     site_mock.assert_not_called()
     assert response.status_code == 404
+
+
+def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_client, site):
+    mocker.patch('app.views.dao_get_observation_search_results', return_value=[site])
+    response = test_client.get(url_for('results'), query_string={'search-term': 'lochaven'})
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert len(page.find('p').find_all('a')) == 1
+
+    site_link = page.find('a', string='Lochaven')
+    assert site_link['href'] == url_for('site_observation',  site_id=1)
+
+
+def test_results_when_there_are_no_results_displays_message(mocker, test_client):
+    mocker.patch('app.views.dao_get_observation_search_results', return_value=[])
+    response = test_client.get(url_for('results'), query_string={'search-term': 'lilliput'})
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert page.find('p').string == "We couldn't find that site."
 
 
 @pytest.mark.parametrize('status_code,page_heading', [

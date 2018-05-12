@@ -1,12 +1,12 @@
 import os
 
 import requests
-from flask import abort, render_template
+from flask import abort, render_template, request
 
 from app import app
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
-from app.site_dao import dao_get_all_sites_with_observations, dao_get_site_by_id
+from app.site_dao import dao_get_all_sites_with_observations, dao_get_observation_search_results, dao_get_site_by_id
 
 
 @app.route('/')
@@ -34,6 +34,13 @@ def site_observation(site_id):
     site_name = dao_get_site_by_id(site_id).name
 
     return render_template('observation_single_site.html', obs=obs, site_name=site_name)
+
+
+@app.route('/results')
+def results():
+    term = request.args.get('search-term')
+    result = dao_get_observation_search_results(term)
+    return render_template('results.html', term=result)
 
 
 def _abort_with_appropriate_error(e):
