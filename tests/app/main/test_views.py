@@ -9,28 +9,28 @@ from tests.json_fixtures.all_obs_for_site import obs_json
 
 
 def test_all_site_observations_each_site_name_links_to_its_obs_page(mocker, test_client):
-    response = test_client.get(url_for('all_site_observations'))
+    response = test_client.get(url_for('main.all_site_observations'))
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     link_one = page.find('a', string='Capel Curig')
-    assert link_one['href'] == url_for('site_observation',  site_id=3305)
+    assert link_one['href'] == url_for('main.site_observation',  site_id=3305)
 
     link_two = page.find('a', string='Scampton')
-    assert link_two['href'] == url_for('site_observation',  site_id=3373)
+    assert link_two['href'] == url_for('main.site_observation',  site_id=3373)
 
 
 def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client, site):
     mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site')
-    mocker.patch('app.views.dao_get_site_by_id', return_value=site)
+    mocker.patch('app.main.views.dao_get_site_by_id', return_value=site)
 
-    response = test_client.get(url_for('site_observation', site_id=site.id))
+    response = test_client.get(url_for('main.site_observation', site_id=site.id))
 
     assert response.status_code == 200
 
 
 def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, site):
-    mocker.patch('app.views.DatapointClient', return_value=dp_client)
-    mocker.patch('app.views.dao_get_site_by_id', return_value=site)
+    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.dao_get_site_by_id', return_value=site)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -39,7 +39,7 @@ def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, si
             json=obs_json
         )
 
-        response = test_client.get(url_for('site_observation', site_id=site.id))
+        response = test_client.get(url_for('main.site_observation', site_id=site.id))
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
@@ -47,8 +47,8 @@ def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, si
 
 
 def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client, site):
-    mocker.patch('app.views.DatapointClient', return_value=dp_client)
-    mocker.patch('app.views.dao_get_site_by_id', return_value=site)
+    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.dao_get_site_by_id', return_value=site)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -57,7 +57,7 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
             json=obs_json
         )
 
-        response = test_client.get(url_for('site_observation', site_id=site.id))
+        response = test_client.get(url_for('main.site_observation', site_id=site.id))
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
@@ -74,28 +74,28 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
 def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_client):
     mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site', side_effect=SiteError)
-    site_mock = mocker.patch('app.views.dao_get_site_by_id')
+    site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
 
-    response = test_client.get(url_for('site_observation', site_id=1000))
+    response = test_client.get(url_for('main.site_observation', site_id=1000))
 
     site_mock.assert_not_called()
     assert response.status_code == 404
 
 
 def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_client, site):
-    mocker.patch('app.views.dao_get_observation_search_results', return_value=[site])
-    response = test_client.get(url_for('results'), query_string={'search-term': 'lochaven'})
+    mocker.patch('app.main.views.dao_get_observation_search_results', return_value=[site])
+    response = test_client.get(url_for('main.results'), query_string={'search-term': 'lochaven'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert len(page.find('p').find_all('a')) == 1
 
     site_link = page.find('a', string='Lochaven')
-    assert site_link['href'] == url_for('site_observation',  site_id=1)
+    assert site_link['href'] == url_for('main.site_observation',  site_id=1)
 
 
 def test_results_when_there_are_no_results_displays_message(mocker, test_client):
-    mocker.patch('app.views.dao_get_observation_search_results', return_value=[])
-    response = test_client.get(url_for('results'), query_string={'search-term': 'lilliput'})
+    mocker.patch('app.main.views.dao_get_observation_search_results', return_value=[])
+    response = test_client.get(url_for('main.results'), query_string={'search-term': 'lilliput'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert page.find('p').string == "We couldn't find that site."
@@ -107,8 +107,8 @@ def test_results_when_there_are_no_results_displays_message(mocker, test_client)
     (500, 'Something went wrong'),
 ])
 def test_error_pages(mocker, dp_client, test_client, status_code, page_heading):
-    mocker.patch('app.views.DatapointClient', return_value=dp_client)
-    site_mock = mocker.patch('app.views.dao_get_site_by_id')
+    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -117,7 +117,7 @@ def test_error_pages(mocker, dp_client, test_client, status_code, page_heading):
             status_code=status_code
         )
 
-        response = test_client.get(url_for('site_observation', site_id=1000))
+        response = test_client.get(url_for('main.site_observation', site_id=1000))
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 

@@ -4,7 +4,7 @@
   <h1>Weather Observation Sites</h1>
 </div>
 <div class="py-2">
-  <form action="{{ url_for('results') }}">
+  <form action="{{ url_for('main.results') }}">
     <div class="row">
       <div class="form-group col-sm-10">
         <label class="sr-only">Search for a site</label>
@@ -20,7 +20,7 @@
   <p>Or select a site from the list below:</p>
   {% for site in sites %}
     <p class="site-links">
-      <a href="{{ url_for('site_observation', site_id=site.id) }}">{{ site.name }}</a>
+      <a href="{{ url_for('main.site_observation', site_id=site.id) }}">{{ site.name }}</a>
     </p>
   {% endfor %}
 <div>

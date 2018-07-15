@@ -1,26 +1,28 @@
 import os
 
 import requests
-from flask import abort, render_template, request
+from flask import Blueprint, abort, render_template, request
 
-from app import app
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
 from app.site_dao import dao_get_all_sites_with_observations, dao_get_observation_search_results, dao_get_site_by_id
 
 
-@app.route('/')
+main = Blueprint('main', __name__)
+
+
+@main.route('/')
 def index():
     return render_template('index.html')
 
 
-@app.route('/observations')
+@main.route('/observations')
 def all_site_observations():
     sites = dao_get_all_sites_with_observations()
     return render_template('observation_sites.html', sites=sites)
 
 
-@app.route('/observations/<int:site_id>')
+@main.route('/observations/<int:site_id>')
 def site_observation(site_id):
     client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
 
@@ -36,7 +38,7 @@ def site_observation(site_id):
     return render_template('observation_single_site.html', obs=obs, site_name=site_name)
 
 
-@app.route('/results')
+@main.route('/results')
 def results():
     term = request.args.get('search-term')
     result = dao_get_observation_search_results(term)
@@ -52,16 +54,16 @@ def _abort_with_appropriate_error(e):
         abort(500)
 
 
-@app.errorhandler(403)
+@main.errorhandler(403)
 def forbidden(error):
     return render_template('403.html'), 403
 
 
-@app.errorhandler(404)
+@main.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
 
 
-@app.errorhandler(500)
+@main.errorhandler(500)
 def internal_server_error(error):
     return render_template('500.html'), 500

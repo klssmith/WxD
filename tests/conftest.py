@@ -1,6 +1,6 @@
 import pytest
 
-from app import app
+from app import create_app
 from app.datapoint_client.client import DatapointClient
 from app.models import Site
 
@@ -8,6 +8,7 @@ from app.models import Site
 @pytest.fixture(scope='session')
 def test_client():
     """Returns a test client"""
+    app = create_app()
     app.testing = True
 
     with app.test_request_context():

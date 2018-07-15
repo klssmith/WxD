@@ -4,11 +4,11 @@
   {% if term %}
     {% for site in term %}
       <p class="site-links">
-        <a href="{{ url_for('site_observation', site_id=site.id) }}">{{ site.name }}</a>
+        <a href="{{ url_for('main.site_observation', site_id=site.id) }}">{{ site.name }}</a>
       </p>
     {% endfor %}
   {% else %}
     <p>We couldn't find that site.</p>
   {% endif %}
-  <a class="btn btn-sm btn-outline-info" href="{{ url_for('all_site_observations') }}">Back</a>
+  <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.all_site_observations') }}">Back</a>
 {% endblock %}
