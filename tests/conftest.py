@@ -12,7 +12,7 @@ from app.models import Site
 @pytest.fixture(scope='session')
 def test_app():
     """Returns a new app for the whole test session"""
-    app = create_app(test_mode=True)
+    app = create_app()
 
     ctx = app.app_context()
     ctx.push()

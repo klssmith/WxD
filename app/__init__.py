@@ -11,13 +11,10 @@ migrate = Migrate()
 from app.main.views import main as main_blueprint # noqa
 
 
-def create_app(test_mode=False):
+def create_app():
     app = Flask(__name__)
 
-    if test_mode:
-        app.config.from_object(configs['test'])
-    else:
-        app.config.from_object(configs[app.env])
+    app.config.from_object(configs[app.env])
 
     db.init_app(app)
     migrate.init_app(app, db=db)
