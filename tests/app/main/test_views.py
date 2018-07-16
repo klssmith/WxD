@@ -4,19 +4,27 @@ import pytest
 
 from flask import url_for
 
+from app import db
 from app.datapoint_client.errors import SiteError
+from app.models import Site
 from tests.json_fixtures.all_obs_for_site import obs_json
 
 
-def test_all_site_observations_each_site_name_links_to_its_obs_page(mocker, test_client):
+def test_all_site_observations_each_site_name_links_to_its_obs_page(test_client, test_db_session):
+    site_1 = Site(id=1, name='Farley Down', observations=True)
+    site_2 = Site(id=2, name='Little Borwood', observations=True)
+
+    db.session.add_all([site_1, site_2])
+    db.session.commit()
+
     response = test_client.get(url_for('main.all_site_observations'))
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
-    link_one = page.find('a', string='Capel Curig')
-    assert link_one['href'] == url_for('main.site_observation',  site_id=3305)
+    link_one = page.find('a', string='Farley Down')
+    assert link_one['href'] == url_for('main.site_observation',  site_id=1)
 
-    link_two = page.find('a', string='Scampton')
-    assert link_two['href'] == url_for('main.site_observation',  site_id=3373)
+    link_two = page.find('a', string='Little Borwood')
+    assert link_two['href'] == url_for('main.site_observation',  site_id=2)
 
 
 def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client, site):
