@@ -27,18 +27,8 @@ def test_all_site_observations_each_site_name_links_to_its_obs_page(test_client,
     assert link_two['href'] == url_for('main.site_observation',  site_id=2)
 
 
-def test_get_site_observation_returns_200_with_valid_site_id(mocker, test_client, site):
-    mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site')
-    mocker.patch('app.main.views.dao_get_site_by_id', return_value=site)
-
-    response = test_client.get(url_for('main.site_observation', site_id=site.id))
-
-    assert response.status_code == 200
-
-
 def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, site):
     mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
-    mocker.patch('app.main.views.dao_get_site_by_id', return_value=site)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -51,12 +41,12 @@ def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, si
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
+    assert response.status_code == 200
     assert page.find('h1').string == 'Weather Observations for Lochaven'
 
 
 def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client, site):
     mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
-    mocker.patch('app.main.views.dao_get_site_by_id', return_value=site)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -98,7 +88,7 @@ def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_cl
     assert len(page.find('p').find_all('a')) == 1
 
     site_link = page.find('a', string='Lochaven')
-    assert site_link['href'] == url_for('main.site_observation',  site_id=1)
+    assert site_link['href'] == url_for('main.site_observation',  site_id=99)
 
 
 def test_results_when_there_are_no_results_displays_message(mocker, test_client):

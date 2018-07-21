@@ -5,13 +5,10 @@ from alembic.command import upgrade
 from alembic.config import Config
 
 from app import create_app, db
-from app.datapoint_client.client import DatapointClient
-from app.models import Site
 
 
 @pytest.fixture(scope='session')
 def test_app():
-    """Returns a new app for the whole test session"""
     app = create_app()
 
     ctx = app.app_context()
@@ -22,7 +19,7 @@ def test_app():
     ctx.pop()
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_client(test_app):
     with test_app.test_client() as client:
         yield client
@@ -45,30 +42,10 @@ def test_db(test_app):
     db.get_engine(test_app).dispose()
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_db_session(test_db):
     yield test_db
 
     test_db.session.remove()
     for tbl in reversed(test_db.metadata.sorted_tables):
         test_db.engine.execute(tbl.delete())
-
-
-@pytest.fixture()
-def dp_client():
-    """Returns a DatapointClient with a fake API key"""
-    return DatapointClient('api-key')
-
-
-@pytest.fixture()
-def site():
-    """Returns a mock site object"""
-    return Site(
-        id=1,
-        name='Lochaven',
-        latitude=56.503,
-        longitude=-4.332,
-        elevation=995,
-        region='he',
-        unitary_auth_area='Highland',
-    )
