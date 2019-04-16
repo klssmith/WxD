@@ -2,6 +2,7 @@ import pytest
 import requests
 import requests_mock
 
+from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
 
 
@@ -37,35 +38,36 @@ def test_get_all_obs_json_raises_an_error_for_400_or_500_status_codes(dp_client)
     assert m.called
 
 
-def test_validate_site_and_format_obs_calls_format_observations_function(mocker, dp_client):
+def test_get_all_obs_for_site_raises_an_error_for_invalid_sites(dp_client):
+    data = {'SiteRep': {'DV': {'dataDate': '2019-04-16T08:00:00Z', 'type': 'Obs'}}}
+    site = 1000
+
+    with pytest.raises(SiteError) as e, requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site, dp_client.api_key),
+            json=data,
+        )
+
+        dp_client.get_all_obs_for_site(1000)
+        assert str(e.value) == 'Site ID used is not valid'
+
+
+def test_get_all_obs_for_site_calls_formatter(mocker):
+    mock_formatter = mocker.Mock()
+    client = DatapointClient(api_key='123', formatter=mock_formatter)
+    site = 1000
     data = {
-        'SiteRep': {
-            'Wx': {'Param': []},
-            'DV': {
-                'type': 'Obs',
-                'Location': {'name': 'HEATHROW', 'Period': [], 'type': 'Day', 'value': '2018-03-15Z'},
-                'lat': '51.479',
-                'i': '3772',
-                'country': 'ENGLAND',
-                'elevation': '25.0',
-                'continent': 'EUROPE',
-                'lon': '-0.449'
-            },
-            'dataDate': '2018-03-15T19:00:00Z'
-        }
+        'SiteRep': {'DV': {'Location': {'Period': ['SUNNY ☀️']}}}
     }
 
-    m = mocker.patch('app.datapoint_client.client.format_observations')
-    dp_client._validate_site_and_format_obs(data)
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/{}?res=hourly&key={}'.format(
+             site, client.api_key),
+            json=data,
+        )
 
-    m.assert_called_once_with([])
+        client.get_all_obs_for_site(site)
 
-
-def test_validate_site_and_format_obs_raises_error_with_invalid_site_id(dp_client):
-    data = {'SiteRep': {'DV': {'dataDate': '2018-03-15T19:00:00Z', 'type': 'Obs'}, 'Wx': {'Param': []}}}
-
-    with pytest.raises(SiteError) as e:
-        dp_client._validate_site_and_format_obs(data)
-
-    assert e.type == SiteError
-    assert str(e.value) == 'Site ID used is not valid'
+    mock_formatter.assert_called_once()
