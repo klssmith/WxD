@@ -2,61 +2,54 @@ from datetime import datetime
 
 import pytest
 
-from app.datapoint_client.formatter import Formatter, ObsFormatter
+from app.datapoint_client.formatter import Formatter, ObsFormatter, WeatherFormatter
 
 
 class MockFormatter(Formatter):
-    def format_time(self, data, other):
+    def format_parameters(self, data):
         return data
-
-    def format_wx(self, data):
-        return data, 'data'
-
-    def format_pt(self, data):
-        return data, 'data'
 
 
 # Formatter tests:
 def test_formatter_is_an_abstract_class_that_formats_data():
     with pytest.raises(NotImplementedError):
-        Formatter().format_observation(original_data)
+        Formatter().format(original_obs_data)
 
 
-def test_formatter_formats_time_using_format_time(mocker):
+def test_formatter_formats_parameters_the_correct_number_of_times(mocker):
+    f = MockFormatter()
+    mocker.spy(f, 'format_parameters')
+
+    assert f.format_parameters.call_count == 0
+    f.format(original_obs_data)
+
+    assert f.format_parameters.call_count == 3
+
+
+def test_formatter_formats_time_the_correct_number_of_times(mocker):
     f = MockFormatter()
     mocker.spy(f, 'format_time')
 
     assert f.format_time.call_count == 0
-    f.format_observation(original_data)
+    f.format(original_obs_data)
 
     assert f.format_time.call_count == 3
 
 
-def test_formatter_formats_pressure_tendency_using_format_pt(mocker):
-    f = MockFormatter()
-    mocker.spy(f, 'format_pt')
+@pytest.mark.parametrize('day, minutes, expected_result', [
+    ('2019-04-08Z', '0', datetime(2019, 4, 8, 0, 0)),
+    ('2019-04-08Z', '960', datetime(2019, 4, 8, 16, 0)),
 
-    assert f.format_pt.call_count == 0
-    f.format_observation(original_data)
-
-    assert f.format_pt.call_count == 3
-
-
-def test_formatter_formats_weather_description_using_format_wx(mocker):
-    f = MockFormatter()
-    mocker.spy(f, 'format_wx')
-
-    assert f.format_wx.call_count == 0
-    f.format_observation(original_data)
-
-    assert f.format_wx.call_count == 3
+])
+def test_formatter_formats_time(day, minutes, expected_result):
+    assert Formatter().format_time(day, minutes) == expected_result
 
 
 # ObsFormatter tests:
 def test_obs_formatter_formats_observation():
     f = ObsFormatter()
 
-    result = f.format_observation(original_data)
+    result = f.format(original_obs_data)
 
     assert len(result) == 3
     assert result[datetime(2019, 4, 8, 12, 0)] == {
@@ -69,24 +62,44 @@ def test_obs_formatter_formats_observation():
         'Dew Point': '9.3'}
 
 
-@pytest.mark.parametrize('day, minutes, expected_result', [
-    ('2019-04-08Z', '0', datetime(2019, 4, 8, 0, 0)),
-    ('2019-04-08Z', '960', datetime(2019, 4, 8, 16, 0)),
-
-])
-def test_obs_formatter_formats_time(day, minutes, expected_result):
-    assert ObsFormatter().format_time(day, minutes) == expected_result
-
-
 def test_obs_formatter_formats_pressure_tendency():
     assert ObsFormatter().format_pt('R') == ('Pressure Tendency', 'Rising')
 
 
-def test_obs_formatter_formats_pressure_weather():
+def test_obs_formatter_formats_weather():
     assert ObsFormatter().format_wx('27') == ('Weather Type', 'Heavy snow')
 
 
-original_data = [{
+# WeatherFormatter tests
+def test_wx_formatter_formats_forecast():
+    f = WeatherFormatter()
+
+    result = f.format(original_fx_data)
+
+    assert len(result) == 4
+    assert result[datetime(2019, 4, 23, 21, 0)] == {
+        'Wind Direction': 'E',
+        'Feels Like Temperature': '14',
+        'Wind Gust': '13',
+        'Screen Relative Humidity': '62',
+        'Precipitation Probability': '4',
+        'Wind Speed': '7',
+        'Temperature': '15',
+        'Visibility': 'Good - Between 10-20 km',
+        'Weather Type': 'Cloudy',
+        'Max UV Index': '0'
+    }
+
+
+def test_wx_formatter_formats_visibility():
+    assert WeatherFormatter().format_visibility('EX') == ('Visibility', 'Excellent - More than 40 km')
+
+
+def test_wx_formatter_formats_weather():
+    assert WeatherFormatter().format_wx('15') == ('Weather Type', 'Heavy rain')
+
+
+original_obs_data = [{
     'type': 'Day',
     'value': '2019-04-08Z',
     'Rep': [{
@@ -128,3 +141,66 @@ original_data = [{
         '$': '0'
     }]
 }]
+
+
+original_fx_data = [{
+    'type': 'Day',
+    'value': '2019-04-23Z',
+    'Rep': [{
+        'D': 'E',
+        'F': '14',
+        'G': '13',
+        'H': '62',
+        'Pp': '4',
+        'S': '7',
+        'T': '15',
+        'V': 'GO',
+        'W': '7',
+        'U': '0',
+        '$': '1260',
+    }],
+  }, {
+    'type': 'Day',
+    'value': '2019-04-24Z',
+    'Rep': [{
+        'D': 'NE',
+        'F': '13',
+        'G': '9',
+        'H': '74',
+        'Pp': '3',
+        'S': '4',
+        'T': '13',
+        'V': 'GO',
+        'W': '7',
+        'U': '0',
+        '$': '0',
+    }, {
+        'D': 'S',
+        'F': '12',
+        'G': '29',
+        'H': '80',
+        'Pp': '58',
+        'S': '16',
+        'T': '15',
+        'V': 'GO',
+        'W': '14',
+        'U': '4',
+        '$': '720',
+        }],
+}, {
+    'type': 'Day',
+    'value': '2019-04-25Z',
+    'Rep': [{
+        'D': 'SE',
+        'F': '8',
+        'G': '18',
+        'H': '81',
+        'Pp': '4',
+        'S': '9',
+        'T': '10',
+        'V': 'VG',
+        'W': '2',
+        'U': '0',
+        '$': '0',
+    }],
+ }]
