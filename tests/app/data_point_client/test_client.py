@@ -7,6 +7,7 @@ import requests_mock
 from app.datapoint_client.client import DatapointClient, validate_site
 from app.datapoint_client.errors import SiteError
 from tests.json_fixtures.all_obs_for_site import obs_json
+from tests.json_fixtures.forecast_for_site import three_hourly_fx_json
 
 
 def test_validate_site_when_site_is_valid_does_not_raise_error():
@@ -25,7 +26,7 @@ def test_validate_site_with_invalid_site_raises_an_error():
 
 
 def test_datapoint_client_build_url_and_payload(mocker):
-    client = DatapointClient('123', mocker.Mock())
+    client = DatapointClient('123', mocker.Mock(), mocker.Mock())
     url, payload = client.build_url_and_payload('hourly', 'wxfcs', 1000)
 
     assert url == client.BASE_URL + 'val/wxfcs/all/json/1000'
@@ -33,7 +34,7 @@ def test_datapoint_client_build_url_and_payload(mocker):
 
 
 def test_datapoint_client_make_request(mocker):
-    client = DatapointClient('123', mocker.Mock())
+    client = DatapointClient('123', mocker.Mock(), mocker.Mock())
     url = 'http://www.example.com'
     payload = {'key': client.api_key, 'res': 'hourly'}
 
@@ -49,7 +50,7 @@ def test_datapoint_client_make_request(mocker):
 
 
 def test_datapoint_client_make_request_when_bad_status_code_returned(mocker):
-    client = DatapointClient('123', mocker.Mock())
+    client = DatapointClient('123', mocker.Mock(), mocker.Mock())
     url = 'http://www.example.com'
     payload = {'key': client.api_key, 'res': 'hourly'}
 
@@ -67,7 +68,7 @@ def test_datapoint_client_make_request_when_bad_status_code_returned(mocker):
 
 def test_datapoint_client_format_data(mocker):
     formatter = mocker.Mock()
-    client = DatapointClient('123', formatter)
+    client = DatapointClient('123', formatter, formatter)
     data = {'SiteRep': {'DV': {'Location': {'Period': 'my_weather'}}}}
 
     client.format_data(data, formatter)
@@ -99,3 +100,29 @@ def test_get_obs_for_site(mocker):
             'Weather Type': 'Mist',
             'Pressure Tendency': 'Rising',
             'Dew Point': '-0.5'}
+
+
+def test_get_3hourly_forecasts_for_site(mocker):
+    site = 1000
+    client = DatapointClient('123')
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/{}?res=3hourly&key={}'.format(
+             site, client.api_key),
+            json=three_hourly_fx_json,
+        )
+
+        forecasts = client.get_3hourly_forecasts_for_site(site)
+        assert len(forecasts) == 3
+        assert forecasts[datetime(2019, 4, 28, 18, 0)] == {
+            'Wind Direction': 'NNE',
+            'Feels Like Temperature': '12',
+            'Wind Gust': '16',
+            'Screen Relative Humidity': '58',
+            'Precipitation Probability': '0',
+            'Wind Speed': '11',
+            'Temperature': '14',
+            'Visibility': 'Good - Between 10-20 km',
+            'Weather Type': 'Partly cloudy (day)',
+            'Max UV Index': '1'}

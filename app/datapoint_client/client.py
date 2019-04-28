@@ -1,7 +1,7 @@
 import requests
 
 from app.datapoint_client.errors import SiteError
-from app.datapoint_client.formatter import ObsFormatter
+from app.datapoint_client.formatter import ObsFormatter, WeatherFormatter
 
 
 def validate_site(data):
@@ -12,9 +12,10 @@ def validate_site(data):
 class DatapointClient:
     BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
 
-    def __init__(self, api_key, obsformatter=ObsFormatter):
+    def __init__(self, api_key, obsformatter=ObsFormatter, wxformatter=WeatherFormatter):
         self.api_key = api_key
         self.obs_formatter = obsformatter()
+        self.wx_formatter = wxformatter()
 
     def get_obs_for_site(self, site):
         url, payload = self.build_url_and_payload('hourly', 'wxobs', site)
@@ -22,6 +23,13 @@ class DatapointClient:
         validate_site(obs_json)
 
         return self.format_data(obs_json, self.obs_formatter)
+
+    def get_3hourly_forecasts_for_site(self, site):
+        url, payload = self.build_url_and_payload('3hourly', 'wxfcs', site)
+        forecast_json = self.make_request(url, payload)
+        validate_site(forecast_json)
+
+        return self.format_data(forecast_json, self.wx_formatter)
 
     def build_url_and_payload(self, res, type, site):
         url = self.BASE_URL + 'val/{}/all/json/{}'.format(type, site)
