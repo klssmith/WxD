@@ -71,7 +71,7 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
 
 def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_client):
-    mocker.patch('app.datapoint_client.client.DatapointClient.get_all_obs_for_site', side_effect=SiteError)
+    mocker.patch('app.datapoint_client.client.DatapointClient.get_obs_for_site', side_effect=SiteError)
     site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
 
     response = test_client.get(url_for('main.site_observation', site_id=1000))

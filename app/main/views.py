@@ -27,7 +27,7 @@ def site_observation(site_id):
     client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
 
     try:
-        obs = client.get_all_obs_for_site(site_id)
+        obs = client.get_obs_for_site(site_id)
     except SiteError:
         abort(404)
     except requests.exceptions.HTTPError as e:

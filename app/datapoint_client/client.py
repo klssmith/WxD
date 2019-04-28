@@ -4,37 +4,37 @@ from app.datapoint_client.errors import SiteError
 from app.datapoint_client.formatter import ObsFormatter
 
 
+def validate_site(data):
+    if not data['SiteRep']['DV'].get('Location'):
+        raise SiteError('Site ID used is not valid')
+
+
 class DatapointClient:
     BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
 
-    def __init__(self, api_key, formatter=ObsFormatter):
+    def __init__(self, api_key, obsformatter=ObsFormatter):
         self.api_key = api_key
-        self.formatter = formatter()
+        self.obs_formatter = obsformatter()
 
-    def get_all_obs_for_site(self, site):
-        obs_json = self._get_all_obs_json(site)
-        self._validate_site(obs_json)
-        formatted_obs = self._format_observations(obs_json)
+    def get_obs_for_site(self, site):
+        url, payload = self.build_url_and_payload('hourly', 'wxobs', site)
+        obs_json = self.make_request(url, payload)
+        validate_site(obs_json)
 
-        return formatted_obs
+        return self.format_data(obs_json, self.obs_formatter)
 
-    def _get_all_obs_json(self, site):
-        """
-        Returns the JSON from this endoint:
-        http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/<site>?res=hourly&key=<API key>
-        """
-        payload = {'key': self.api_key, 'res': 'hourly'}
-        url = self.BASE_URL + 'val/wxobs/all/json/{}'.format(site)
+    def build_url_and_payload(self, res, type, site):
+        url = self.BASE_URL + 'val/{}/all/json/{}'.format(type, site)
+        payload = {'key': self.api_key, 'res': res}
 
+        return (url, payload)
+
+    def make_request(self, url, payload):
         r = requests.get(url, params=payload)
 
         r.raise_for_status()
         return r.json()
 
-    def _validate_site(self, data):
-        if not data['SiteRep']['DV'].get('Location'):
-            raise SiteError('Site ID used is not valid')
-
-    def _format_observations(self, data):
+    def format_data(self, data, formatter):
         data = data['SiteRep']['DV']['Location']['Period']
-        return self.formatter.format_observation(data)
+        return formatter.format(data)
