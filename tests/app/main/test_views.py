@@ -8,6 +8,7 @@ from app import db
 from app.datapoint_client.errors import SiteError
 from app.models import Site
 from tests.json_fixtures.all_obs_for_site import obs_json
+from tests.json_fixtures.forecast_for_site import three_hourly_fx_json
 
 
 def test_all_site_observations_each_site_name_links_to_its_obs_page(test_client, test_db_session):
@@ -97,6 +98,76 @@ def test_results_when_there_are_no_results_displays_message(mocker, test_client)
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert page.find('p').string == "We couldn't find that site."
+
+
+def test_all_site_forecasts_shows_each_site_name_and_links_to_its_page(test_client, test_db_session):
+    site_1 = Site(id=1, name='Farley Down')
+    site_2 = Site(id=2, name='Little Borwood', observations=True)
+
+    db.session.add_all([site_1, site_2])
+    db.session.commit()
+
+    response = test_client.get(url_for('main.all_site_forecasts'))
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    link_one = page.find('a', string='Farley Down')
+    assert link_one['href'] == url_for('main.site_forecast',  site_id=1)
+
+    link_two = page.find('a', string='Little Borwood')
+    assert link_two['href'] == url_for('main.site_forecast',  site_id=2)
+
+
+def test_site_forecast_shows_the_site_name(mocker, dp_client, test_client, site):
+    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/{}?res=3hourly&key={}'.format(
+             site.id, dp_client.api_key),
+            json=three_hourly_fx_json
+        )
+
+        response = test_client.get(url_for('main.site_forecast', site_id=site.id))
+
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert response.status_code == 200
+    assert page.find('h1').string == 'Weather Forecast for Lochaven'
+
+
+def test_site_forecast_displays_forecast_in_a_table(mocker, dp_client, test_client, site):
+    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            'http://datapoint.metoffice.gov.uk/public/data/val/wxfcs/all/json/{}?res=3hourly&key={}'.format(
+             site.id, dp_client.api_key),
+            json=three_hourly_fx_json
+        )
+
+        response = test_client.get(url_for('main.site_forecast', site_id=site.id))
+
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    dates = page.tbody.find_all('th')
+    assert dates[0].string == '2019-04-28 18:00:00'
+    assert dates[1].string == '2019-04-28 21:00:00'
+    assert dates[2].string == '2019-04-29 00:00:00'
+
+    forecast = page.tbody.tr.find_all('td')
+    assert forecast[0].string == 'Partly cloudy (day)'
+    assert forecast[3].string == '58'
+    assert forecast[7].string == 'Good - Between 10-20 km'
+
+
+def test_get_site_forecast_returns_404_with_invalid_site_id(mocker, test_client):
+    mocker.patch('app.datapoint_client.client.DatapointClient.get_3hourly_forecasts_for_site', side_effect=SiteError)
+    site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
+
+    response = test_client.get(url_for('main.site_forecast', site_id=1000))
+
+    site_mock.assert_not_called()
+    assert response.status_code == 404
 
 
 @pytest.mark.parametrize('status_code,page_heading', [

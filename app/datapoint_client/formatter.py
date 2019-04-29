@@ -57,8 +57,8 @@ class ObsFormatter(Formatter):
     def format_wx(self, wx_code):
         return self._format('W', wx_code)
 
-    def _format(self, code, result):
-        return (FIELD_DESCRIPTORS[code]['description'], FIELD_DESCRIPTORS[code].get(result, 'Unknown'))
+    def _format(self, descriptor, code):
+        return (FIELD_DESCRIPTORS[descriptor]['description'], FIELD_DESCRIPTORS[descriptor].get(code, 'Unknown'))
 
 
 class WeatherFormatter(Formatter):
@@ -85,6 +85,6 @@ class WeatherFormatter(Formatter):
     def format_wx(self, wx_code):
         return self._format('W', wx_code)
 
-    def _format(self, code, result):
-        return (FORECAST_FIELD_DESCRIPTORS[code]['description'],
-                FORECAST_FIELD_DESCRIPTORS[code].get(result, 'Unknown'))
+    def _format(self, descriptor, code):
+        return (FORECAST_FIELD_DESCRIPTORS[descriptor]['description'],
+                FORECAST_FIELD_DESCRIPTORS[descriptor].get(code, 'Unknown'))

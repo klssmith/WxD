@@ -2,7 +2,30 @@ import pytest
 
 from app import db
 from app.models import Site
-from app.site_dao import dao_get_all_sites_with_observations, dao_get_observation_search_results, dao_get_site_by_id
+from app.site_dao import (
+    dao_get_all_sites,
+    dao_get_all_sites_with_observations,
+    dao_get_observation_search_results,
+    dao_get_site_by_id,
+)
+
+
+def test_dao_get_all_sites(test_db_session):
+    site_g = Site(id=5, name='Golf')
+    obs_site_f = Site(id=1, name='Foxtrot', observations=True)
+    obs_site_a = Site(id=17, name='Alpha', observations=True)
+    site_k = Site(id=10, name='Kilo')
+
+    db.session.add_all([site_g, obs_site_f, obs_site_a, site_k])
+    db.session.commit()
+
+    result = dao_get_all_sites()
+
+    assert len(result) == 4
+    assert result[0].name == 'Alpha'
+    assert result[1].name == 'Foxtrot'
+    assert result[2].name == 'Golf'
+    assert result[3].name == 'Kilo'
 
 
 def test_dao_get_site_by_id_when_site_exists(site):
@@ -42,7 +65,7 @@ def test_dao_get_observation_search_results_with_no_match_returns_empty_list():
     assert result == []
 
 
-def test_dao_get_observation_search_results_when_site_is_not_obs_sitereturns_empty_list(site):
+def test_dao_get_observation_search_results_when_site_is_not_obs_site_returns_empty_list(site):
     result = dao_get_observation_search_results(site.name)
     assert result == []
 

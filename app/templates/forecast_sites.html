@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+  <h1>Weather Forecast Sites</h1>
+</div>
+<div>
+  <p>Select a site from the list below:</p>
+  {% for site in sites %}
+    <p class="site-links">
+      <a href="{{ url_for('main.site_forecast', site_id=site.id) }}">{{ site.name }}</a>
+    </p>
+  {% endfor %}
+<div>
+{% endblock %}
