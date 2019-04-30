@@ -3,12 +3,39 @@
 <div>
   <h1>WxD</h1>
 </div>
-<div>
-  <p>
-    This is the WxD homepage.
-  </p>
-  <p>
-    You can view all weather observations for Heathrow <a href="{{ url_for('main.site_observation', site_id=3772) }}">here</a>.
-  </p>
+
+<div class="row">
+  <div class="col-md p-2">
+    <div class="card text-center bg-info text-white">
+      <div class="card-body pg-3">
+        <h3 class="card-title">Search by site</h3>
+        <p class="card-text">Coming soon...</p>
+        <a href="#" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md p-2">
+    <div class="card text-center bg-info text-white">
+      <div class="card-body pg-3">
+        <h3 class="card-title">Observations</h3>
+        <p class="card-text">See the observations for all sites</p>
+        <a href="{{ url_for('main.all_site_forecasts') }}" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md p-2">
+    <div class="card text-center bg-info text-white">
+      <div class="card-body">
+        <h3 class="card-title">Forecasts</h3>
+        <p class="card-text">See the forecasts for all sites</p>
+        <a href="{{ url_for('main.all_site_observations') }}" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
