@@ -2,13 +2,15 @@ import os
 
 import requests
 from flask import Blueprint, abort, render_template, request
+from flask.views import View
 
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
 from app.site_dao import (
+    dao_find_all_sites_by_name,
+    dao_find_observation_sites_by_name,
     dao_get_all_sites,
     dao_get_all_sites_with_observations,
-    dao_get_observation_search_results,
     dao_get_site_by_id,
 )
 
@@ -16,15 +18,44 @@ from app.site_dao import (
 main = Blueprint('main', __name__)
 
 
+class ShowSites(View):
+    template = ''
+
+    def dispatch_request(self):
+        sites = self.get_sites()
+        return render_template(self.template, sites=sites)
+
+
+    def get_sites(self):
+        raise NotImplementedError()
+
+
+class ShowObs(ShowSites):
+    template = 'observation_sites.html'
+
+    def get_sites(self):
+        return dao_get_all_sites_with_observations()
+
+class ShowForecasts(ShowSites):
+    template = 'forecast_sites.html'
+
+    def get_sites(self):
+        return dao_get_all_sites()
+
+
+main.add_url_rule('/observations/', view_func=ShowObs.as_view('all_site_observations'))
+main.add_url_rule('/forecasts/', view_func=ShowForecasts.as_view('all_site_forecasts'))
+
+
 @main.route('/')
 def index():
     return render_template('index.html')
 
 
-@main.route('/observations')
-def all_site_observations():
-    sites = dao_get_all_sites_with_observations()
-    return render_template('observation_sites.html', sites=sites)
+# @main.route('/observations')
+# def all_site_observations():
+#     sites = dao_get_all_sites_with_observations()
+#     return render_template('observation_sites.html', sites=sites)
 
 
 @main.route('/observations/<int:site_id>')
@@ -38,22 +69,27 @@ def site_observation(site_id):
     except requests.exceptions.HTTPError as e:
         _abort_with_appropriate_error(e)
 
-    site_name = dao_get_site_by_id(site_id).name
-
-    return render_template('observation_single_site.html', obs=obs, site_name=site_name)
+    site = dao_get_site_by_id(site_id)
+    return render_template('observation_single_site.html', obs=obs, site=site)
 
 
 @main.route('/results')
 def results():
-    term = request.args.get('search-term')
-    result = dao_get_observation_search_results(term)
-    return render_template('results.html', term=result)
+    search_term = request.args.get('search-term')
+    obs = request.args.get('obs')
+
+    if obs:
+        results = dao_find_observation_sites_by_name(search_term)
+    else:
+        results = dao_find_all_sites_by_name(search_term)
+
+    return render_template('results.html', results=results)
 
 
-@main.route('/forecasts')
-def all_site_forecasts():
-    sites = dao_get_all_sites()
-    return render_template('forecast_sites.html', sites=sites)
+# @main.route('/forecasts')
+# def all_site_forecasts():
+#     sites = dao_get_all_sites()
+#     return render_template('forecast_sites.html', sites=sites)
 
 
 @main.route('/forecasts/<int:site_id>')
@@ -67,9 +103,13 @@ def site_forecast(site_id):
     except requests.exceptions.HTTPError as e:
         _abort_with_appropriate_error(e)
 
-    site_name = dao_get_site_by_id(site_id).name
-
-    return render_template('forecast_single_site.html', forecast=forecast, site_name=site_name)
+    site = dao_get_site_by_id(site_id)
+    thing = [
+        ('Date', ''),
+        ('Weather', 'Weather Type'),
+        ('Temperature, &#x2103;', 'Temperature'),
+    ]
+    return render_template('forecast_single_site_2.html', thing=thing, forecast=forecast, site=site)
 
 
 def _abort_with_appropriate_error(e):

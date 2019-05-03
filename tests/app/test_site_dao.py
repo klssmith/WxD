@@ -3,9 +3,9 @@ import pytest
 from app import db
 from app.models import Site
 from app.site_dao import (
+    dao_find_observation_sites_by_name,
     dao_get_all_sites,
     dao_get_all_sites_with_observations,
-    dao_get_observation_search_results,
     dao_get_site_by_id,
 )
 
@@ -60,13 +60,13 @@ def test_dao_get_all_sites_with_observations_with_no_obs_sites():
     assert result == []
 
 
-def test_dao_get_observation_search_results_with_no_match_returns_empty_list():
-    result = dao_get_observation_search_results('Billericay')
+def test_dao_find_observation_sites_by_name_with_no_match_returns_empty_list():
+    result = dao_find_observation_sites_by_name('Billericay')
     assert result == []
 
 
-def test_dao_get_observation_search_results_when_site_is_not_obs_site_returns_empty_list(site):
-    result = dao_get_observation_search_results(site.name)
+def test_dao_find_observation_sites_by_name_when_site_is_not_obs_site_returns_empty_list(site):
+    result = dao_find_observation_sites_by_name(site.name)
     assert result == []
 
 
@@ -77,13 +77,13 @@ def test_dao_get_observation_search_results_when_site_is_not_obs_site_returns_em
     'VerLey',
     'LEY',
 ])
-def test_dao_get_observation_search_results_returns_similar_search_terms(obs_site, search_term):
-    result = dao_get_observation_search_results(search_term)
+def test_dao_find_observation_sites_by_name_returns_similar_search_terms(obs_site, search_term):
+    result = dao_find_observation_sites_by_name(search_term)
     assert len(result) == 1
     assert result[0] == obs_site
 
 
-def test_dao_get_observation_search_results_can_return_multiple_matches(test_db_session):
+def test_dao_find_observation_sites_by_name_can_return_multiple_matches(test_db_session):
     site_1 = Site(id=1, name='Fingrove', observations=True)
     site_2 = Site(id=2, name='Fingroove', observations=True)
     site_3 = Site(id=3, name='Fyngrove', observations=True)
@@ -91,6 +91,6 @@ def test_dao_get_observation_search_results_can_return_multiple_matches(test_db_
     db.session.add_all([site_1, site_2, site_3])
     db.session.commit()
 
-    result = dao_get_observation_search_results('ngro')
+    result = dao_find_observation_sites_by_name('ngro')
 
     assert result == [site_2, site_1, site_3]

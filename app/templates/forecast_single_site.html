@@ -1,12 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
 <div>
-  <h1>Weather Forecast for {{ site_name }}</h1>
+  <h1>Weather Forecast for {{ site.name }}</h1>
 </div>
+{% if site.observations %}
+  <div>
+    <a href="{{ url_for('main.site_observation', site_id=site.id) }}" class="badge badge-secondary">
+      View the {{ site.name }} observations
+    </a>
+  </div>
+{% endif %}
 <div>
   <table class="table table-striped table-responsive">
     <thead>
       <tr>
+        {% for header, _ in thing %}
+          <th scope="col">{{ header }}</th>
+        {% endfor %}
+
         <th scope="col">Date &amp; time</th>
         <th scope="col">Weather</th>
         <th scope="col">Temperature, &#x2103;</th>
@@ -23,6 +34,10 @@
     {% for date, content in forecast.items() %}
       <tr>
         <th scope="row">{{ date }}</th>
+        {% for _, key in thing %}
+          <td>{{ forecast[date][key] }}</td>
+        {% endfor %}
+
         <td>{{ forecast[date]['Weather Type'] }}</td>
         <td>{{ forecast[date]['Temperature'] }}</td>
         <td>{{ forecast[date]['Feels Like Temperature'] }}</td>
