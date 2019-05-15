@@ -2,6 +2,7 @@ import os
 
 import requests
 from flask import Blueprint, abort, render_template, request
+from flask.views import View
 
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
@@ -16,15 +17,38 @@ from app.site_dao import (
 main = Blueprint('main', __name__)
 
 
+class ShowSites(View):
+    template = ''
+
+    def dispatch_request(self):
+        sites = self.get_sites()
+        return render_template(self.template, sites=sites)
+
+    def get_sites(self):
+        raise NotImplementedError()
+
+
+class ShowObs(ShowSites):
+    template = 'observation_sites.html'
+
+    def get_sites(self):
+        return dao_get_all_sites_with_observations()
+
+
+class ShowForecasts(ShowSites):
+    template = 'forecast_sites.html'
+
+    def get_sites(self):
+        return dao_get_all_sites()
+
+
+main.add_url_rule('/observations/', view_func=ShowObs.as_view('all_site_observations'))
+main.add_url_rule('/forecasts/', view_func=ShowForecasts.as_view('all_site_forecasts'))
+
+
 @main.route('/')
 def index():
     return render_template('index.html')
-
-
-@main.route('/observations/')
-def all_site_observations():
-    sites = dao_get_all_sites_with_observations()
-    return render_template('observation_sites.html', sites=sites)
 
 
 @main.route('/observations/<int:site_id>')
@@ -48,12 +72,6 @@ def results():
     term = request.args.get('search-term')
     result = dao_find_observation_sites_by_name(term)
     return render_template('results.html', term=result)
-
-
-@main.route('/forecasts/')
-def all_site_forecasts():
-    sites = dao_get_all_sites()
-    return render_template('forecast_sites.html', sites=sites)
 
 
 @main.route('/forecasts/<int:site_id>')
