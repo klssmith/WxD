@@ -82,7 +82,7 @@ def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_clie
 
 
 def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_client, site):
-    mocker.patch('app.main.views.dao_get_observation_search_results', return_value=[site])
+    mocker.patch('app.main.views.dao_find_observation_sites_by_name', return_value=[site])
     response = test_client.get(url_for('main.results'), query_string={'search-term': 'lochaven'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
@@ -93,7 +93,7 @@ def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_cl
 
 
 def test_results_when_there_are_no_results_displays_message(mocker, test_client):
-    mocker.patch('app.main.views.dao_get_observation_search_results', return_value=[])
+    mocker.patch('app.main.views.dao_find_observation_sites_by_name', return_value=[])
     response = test_client.get(url_for('main.results'), query_string={'search-term': 'lilliput'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 

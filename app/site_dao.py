@@ -15,7 +15,7 @@ def dao_get_all_sites_with_observations():
     ).order_by('name').all()
 
 
-def dao_get_observation_search_results(term):
+def dao_find_observation_sites_by_name(term):
     return Site.query.filter(
         Site.observations == True,  # noqa
         Site.name.ilike('%{}%'.format(term))
