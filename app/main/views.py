@@ -7,6 +7,7 @@ from flask.views import View
 from app.datapoint_client.client import DatapointClient
 from app.datapoint_client.errors import SiteError
 from app.site_dao import (
+    dao_find_sites_by_name,
     dao_find_observation_sites_by_name,
     dao_get_all_sites,
     dao_get_all_sites_with_observations,
@@ -69,9 +70,15 @@ def site_observation(site_id):
 
 @main.route('/results')
 def results():
-    term = request.args.get('search-term')
-    result = dao_find_observation_sites_by_name(term)
-    return render_template('results.html', term=result)
+    search_term = request.args.get('search-term')
+    obs = request.args.get('obs')
+
+    if obs:
+        results = dao_find_observation_sites_by_name(search_term)
+    else:
+        results = dao_find_sites_by_name(search_term)
+
+    return render_template('results.html', results=results)
 
 
 @main.route('/forecasts/<int:site_id>')

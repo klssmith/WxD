@@ -6,6 +6,7 @@ from app.site_dao import (
     dao_get_all_sites,
     dao_get_all_sites_with_observations,
     dao_find_observation_sites_by_name,
+    dao_find_sites_by_name,
     dao_get_site_by_id,
 )
 
@@ -55,19 +56,16 @@ def test_dao_get_all_sites_with_observations_returns_obs_sites(test_db_session):
     assert result[2].name == 'Mike'
 
 
-def test_dao_get_all_sites_with_observations_with_no_obs_sites():
-    result = dao_get_all_sites_with_observations()
-    assert result == []
+def test_dao_get_all_sites_with_observations_with_no_obs_sites(test_db_session):
+    assert dao_get_all_sites_with_observations() == []
 
 
-def test_dao_find_observation_sites_by_name_with_no_match_returns_empty_list():
-    result = dao_find_observation_sites_by_name('Billericay')
-    assert result == []
+def test_dao_find_observation_sites_by_name_with_no_match_returns_empty_list(test_db_session):
+    assert dao_find_observation_sites_by_name('Billericay') == []
 
 
 def test_dao_find_observation_sites_by_name_when_site_is_not_obs_site_returns_empty_list(site):
-    result = dao_find_observation_sites_by_name(site.name)
-    assert result == []
+    assert dao_find_observation_sites_by_name(site.name) == []
 
 
 @pytest.mark.parametrize('search_term', [
@@ -94,3 +92,15 @@ def test_dao_find_observation_sites_by_name_can_return_multiple_matches(test_db_
     result = dao_find_observation_sites_by_name('ngro')
 
     assert result == [site_2, site_1, site_3]
+
+
+def test_dao_find_sites_by_name_with_no_match_returns_empty_list(test_db_session):
+    assert dao_find_sites_by_name('Billericay') == []
+
+
+def test_dao_find_sites_by_name_returns_obs_and_forecast_sites(site, obs_site):
+    result = dao_find_sites_by_name('ve')
+
+    assert len(result) == 2
+    assert result[0].name == 'Lochaven'
+    assert result[1].name == 'Silverley'

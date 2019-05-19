@@ -20,3 +20,9 @@ def dao_find_observation_sites_by_name(term):
         Site.observations == True,  # noqa
         Site.name.ilike('%{}%'.format(term))
     ).order_by('name').all()
+
+
+def dao_find_sites_by_name(term):
+    return Site.query.filter(
+        Site.name.ilike('%{}%'.format(term))
+    ).order_by('name').all()
