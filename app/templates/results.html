@@ -4,7 +4,7 @@
   {% if results %}
     {% for site in results %}
       <p class="site-links">
-        <a href="{{ url_for('main.site_observation', site_id=site.id) }}">{{ site.name }}</a>
+        <a href="{{ url_for('main.site', site_id=site.id) }}">{{ site.name }}</a>
       </p>
     {% endfor %}
   {% else %}

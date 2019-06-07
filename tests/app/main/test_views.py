@@ -1,3 +1,5 @@
+import re
+
 from bs4 import BeautifulSoup
 import requests_mock
 import pytest
@@ -81,7 +83,7 @@ def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_clie
     assert response.status_code == 404
 
 
-def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_client, site):
+def test_results_displays_the_sites_when_a_result_is_found(mocker, test_client, site):
     mocker.patch('app.main.views.dao_find_observation_sites_by_name', return_value=[site])
     response = test_client.get(url_for('main.results'), query_string={'search-term': 'lochaven'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
@@ -89,10 +91,10 @@ def test_results_when_a_result_is_found_displays_the_sites_found(mocker, test_cl
     assert len(page.find('p').find_all('a')) == 1
 
     site_link = page.find('a', string='Lochaven')
-    assert site_link['href'] == url_for('main.site_observation',  site_id=99)
+    assert site_link['href'] == url_for('main.site',  site_id=99)
 
 
-def test_results_when_there_are_no_results_displays_message(mocker, test_client):
+def test_results_displays_message_when_no_results_are_found(mocker, test_client):
     mocker.patch('app.main.views.dao_find_observation_sites_by_name', return_value=[])
     response = test_client.get(url_for('main.results'), query_string={'search-term': 'lilliput'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
@@ -194,3 +196,27 @@ def test_error_pages(mocker, dp_client, test_client, status_code, page_heading):
     assert page.title.string == 'WxD'
     assert page.h1.string == page_heading
     assert response.status_code == status_code
+
+
+def test_site_details_for_site_with_observations(test_client, obs_site):
+    response = test_client.get(url_for('main.site', site_id=obs_site.id))
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Latitude: {}'.format(obs_site.latitude))
+    assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Longitude: {}'.format(obs_site.longitude))
+    assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Elevation: {} m'.format(obs_site.elevation))
+
+    assert page.find('a', string=re.compile('Silverley observations'))
+    assert page.find('a', string=re.compile('Silverley forecast'))
+
+
+def test_site_details_for_site_without_observations(test_client, site):
+    response = test_client.get(url_for('main.site', site_id=site.id))
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Latitude: {}'.format(site.latitude))
+    assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Longitude: {}'.format(site.longitude))
+    assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Elevation: {} m'.format(site.elevation))
+
+    assert not page.find('a', string=re.compile('Lochaven observations'))
+    assert page.find('a', string=re.compile('Lochaven forecast'))

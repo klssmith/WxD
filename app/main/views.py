@@ -4,6 +4,7 @@ from flask.views import View
 
 from app import client
 from app.datapoint_client.errors import SiteError
+from app.models import Site
 from app.site_dao import (
     dao_find_sites_by_name,
     dao_find_observation_sites_by_name,
@@ -119,6 +120,13 @@ main.add_url_rule('/forecasts/<int:site_id>', view_func=ShowSingleForecast.as_vi
 @main.route('/')
 def index():
     return render_template('index.html')
+
+
+@main.route('/sites/<int:site_id>')
+def site(site_id):
+    site = Site.query.get_or_404(site_id)
+
+    return render_template('site_details.html', site=site)
 
 
 @main.route('/results')

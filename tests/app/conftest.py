@@ -22,6 +22,7 @@ def site(test_db_session):
         elevation=995,
         region='he',
         unitary_auth_area='Highland',
+        observations=False
     )
     db.session.add(site)
     db.session.commit()
