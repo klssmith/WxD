@@ -29,7 +29,7 @@ def test_all_site_observations_each_site_name_links_to_its_obs_page(test_client,
 
 
 def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, site):
-    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.client', new=dp_client)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -47,7 +47,7 @@ def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, si
 
 
 def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client, site):
-    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.client', new=dp_client)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -67,7 +67,7 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
     weather_obs = page.tbody.tr.find_all('td')
     assert weather_obs[0].string == 'Mist'
-    assert weather_obs[4].string == '11 E'
+    assert weather_obs[4].string == '11'
     assert weather_obs[5].string is None
 
 
@@ -118,7 +118,7 @@ def test_all_site_forecasts_shows_each_site_name_and_links_to_its_page(test_clie
 
 
 def test_site_forecast_shows_the_site_name(mocker, dp_client, test_client, site):
-    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.client', new=dp_client)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -136,7 +136,7 @@ def test_site_forecast_shows_the_site_name(mocker, dp_client, test_client, site)
 
 
 def test_site_forecast_displays_forecast_in_a_table(mocker, dp_client, test_client, site):
-    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.client', new=dp_client)
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -176,7 +176,7 @@ def test_get_site_forecast_returns_404_with_invalid_site_id(mocker, test_client)
     (500, 'Something went wrong'),
 ])
 def test_error_pages(mocker, dp_client, test_client, status_code, page_heading):
-    mocker.patch('app.main.views.DatapointClient', return_value=dp_client)
+    mocker.patch('app.main.views.client', new=dp_client)
     site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
 
     with requests_mock.Mocker() as m:

@@ -1,0 +1,23 @@
+{% macro table(data, headings) %}
+<table class="table table-striped table-responsive">
+  <thead>
+    <tr>
+      {% for header, _ in headings %}
+        <th scope="col">{{ header }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for date, content in data.items() %}
+    <tr>
+      <th scope="row">{{ date }}</th>
+      {% for _, key in headings %}
+        {% if not loop.first %}
+          <td>{{ data[date][key] }}</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{%- endmacro %}

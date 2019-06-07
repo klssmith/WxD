@@ -1,10 +1,8 @@
-import os
-
 import requests
 from flask import Blueprint, abort, render_template, request
 from flask.views import View
 
-from app.datapoint_client.client import DatapointClient
+from app import client
 from app.datapoint_client.errors import SiteError
 from app.site_dao import (
     dao_find_sites_by_name,
@@ -47,25 +45,80 @@ main.add_url_rule('/observations/', view_func=ShowObs.as_view('all_site_observat
 main.add_url_rule('/forecasts/', view_func=ShowForecasts.as_view('all_site_forecasts'))
 
 
+class ShowSingleSite(View):
+    template = ''
+    headings = ''
+
+    def dispatch_request(self, site_id):
+        data = self.get_data(site_id)
+        site = self.get_site(site_id)
+        return render_template(self.template, headings=self.headings, data=data, site=site)
+
+    def get_site(self, site_id):
+        return dao_get_site_by_id(site_id)
+
+    def get_data(self, site_id):
+        raise NotImplementedError()
+
+
+class ShowSingleOb(ShowSingleSite):
+    template = 'observation_single_site.html'
+    headings = [
+        ('Date', ''),
+        ('Weather', 'Weather Type'),
+        ('Temperature, °C', 'Temperature'),
+        ('Dew point, °C', 'Dew Point'),
+        ('Relative humidity, %', 'Screen Relative Humidity'),
+        ('Wind, mph', 'Wind Speed'),
+        ('Wind Gust, mph', 'Wind Gust'),
+        ('Pressure, hPa', 'Pressure'),
+        ('Visibility, m', 'Visibility'),
+    ]
+
+    def get_data(self, site_id):
+        try:
+            obs = client.get_obs_for_site(site_id)
+        except SiteError:
+            abort(404)
+        except requests.exceptions.HTTPError as e:
+            _abort_with_appropriate_error(e)
+
+        return obs
+
+
+class ShowSingleForecast(ShowSingleSite):
+    template = 'forecast_single_site.html'
+    headings = [
+        ('Date', ''),
+        ('Weather', 'Weather Type'),
+        ('Temperature, °C', 'Temperature'),
+        ('Feels like temperature, °C', 'Feels Like Temperature'),
+        ('Relative humidity, %', 'Screen Relative Humidity'),
+        ('Probability of precipitation, %', 'Precipitation Probability'),
+        ('Wind, mph', 'Wind Speed'),
+        ('Wind Gust, mph', 'Wind Gust'),
+        ('Visibility, m', 'Visibility'),
+        ('Max UV Index', 'Max UV Index')
+    ]
+
+    def get_data(self, site_id):
+        try:
+            forecast = client.get_3hourly_forecasts_for_site(site_id)
+        except SiteError:
+            abort(404)
+        except requests.exceptions.HTTPError as e:
+            _abort_with_appropriate_error(e)
+
+        return forecast
+
+
+main.add_url_rule('/observations/<int:site_id>', view_func=ShowSingleOb.as_view('site_observation'))
+main.add_url_rule('/forecasts/<int:site_id>', view_func=ShowSingleForecast.as_view('site_forecast'))
+
+
 @main.route('/')
 def index():
     return render_template('index.html')
-
-
-@main.route('/observations/<int:site_id>')
-def site_observation(site_id):
-    client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
-
-    try:
-        obs = client.get_obs_for_site(site_id)
-    except SiteError:
-        abort(404)
-    except requests.exceptions.HTTPError as e:
-        _abort_with_appropriate_error(e)
-
-    site = dao_get_site_by_id(site_id)
-
-    return render_template('observation_single_site.html', obs=obs, site=site)
 
 
 @main.route('/results')
@@ -79,22 +132,6 @@ def results():
         results = dao_find_sites_by_name(search_term)
 
     return render_template('results.html', results=results)
-
-
-@main.route('/forecasts/<int:site_id>')
-def site_forecast(site_id):
-    client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
-
-    try:
-        forecast = client.get_3hourly_forecasts_for_site(site_id)
-    except SiteError:
-        abort(404)
-    except requests.exceptions.HTTPError as e:
-        _abort_with_appropriate_error(e)
-
-    site = dao_get_site_by_id(site_id)
-
-    return render_template('forecast_single_site.html', forecast=forecast, site=site)
 
 
 def _abort_with_appropriate_error(e):

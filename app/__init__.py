@@ -1,11 +1,15 @@
+import os
+
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from app.config import configs
+from app.datapoint_client.client import DatapointClient
 
 
 db = SQLAlchemy()
 migrate = Migrate()
+client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
 
 
 from app.main.views import main as main_blueprint # noqa

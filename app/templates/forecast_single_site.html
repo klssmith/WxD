@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% import 'table.html' as table %}
 {% block content %}
 <div>
   <h1>Weather Forecast for {{ site.name }}</h1>
@@ -11,37 +12,6 @@
   </div>
 {% endif %}
 <div>
-  <table class="table table-striped table-responsive">
-    <thead>
-      <tr>
-        <th scope="col">Date &amp; time</th>
-        <th scope="col">Weather</th>
-        <th scope="col">Temperature, &#x2103;</th>
-        <th scope="col">Feels like temperature<br />point, &#x2103;</th>
-        <th scope="col">Relative<br />humidity, %</th>
-        <th scope="col">Probability of precipitation, %</th>
-        <th scope="col">Wind, mph</th>
-        <th scope="col">Wind<br />Gust, mph</th>
-        <th scope="col">Visibility, m</th>
-        <th scope="col">Max UV Index</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for date, content in forecast.items() %}
-      <tr>
-        <th scope="row">{{ date }}</th>
-        <td>{{ forecast[date]['Weather Type'] }}</td>
-        <td>{{ forecast[date]['Temperature'] }}</td>
-        <td>{{ forecast[date]['Feels Like Temperature'] }}</td>
-        <td>{{ forecast[date]['Screen Relative Humidity'] }}</td>
-        <td>{{ forecast[date]['Precipitation Probability'] }}</td>
-        <td>{{ forecast[date]['Wind Speed'] }} {{ forecast[date]['Wind Direction'] }}</td>
-        <td>{{ forecast[date]['Wind Gust'] }}</td>
-        <td>{{ forecast[date]['Visibility'] }}</td>
-        <td>{{ forecast[date]['Max UV Index'] }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  {{ table.table(data, headings) }}
 </div>
 {% endblock %}
