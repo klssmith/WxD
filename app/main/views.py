@@ -133,13 +133,28 @@ def site(site_id):
 def results():
     search_term = request.args.get('search-term')
     obs = request.args.get('obs')
+    link = request.args.get('link')
 
-    if obs:
+    if obs == 'true':
         results = dao_find_observation_sites_by_name(search_term)
     else:
         results = dao_find_sites_by_name(search_term)
 
-    return render_template('results.html', results=results)
+    results_link, back_link = get_results_page_links(link)
+
+    return render_template('results.html', results=results, link=results_link, back_link=back_link)
+
+
+def get_results_page_links(link):
+    result_link = {'site': 'main.site',
+                   'obs': 'main.site_observation',
+                   'fx': 'main.site_forecast'}
+
+    back_link = {'site': 'main.index',
+                 'obs': 'main.all_site_observations',
+                 'fx': 'main.all_site_forecasts'}
+
+    return result_link[link], back_link[link]
 
 
 def _abort_with_appropriate_error(e):

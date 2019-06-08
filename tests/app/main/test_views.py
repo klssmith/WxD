@@ -83,20 +83,58 @@ def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_clie
     assert response.status_code == 404
 
 
-def test_results_displays_the_sites_when_a_result_is_found(mocker, test_client, site):
-    mocker.patch('app.main.views.dao_find_observation_sites_by_name', return_value=[site])
-    response = test_client.get(url_for('main.results'), query_string={'search-term': 'lochaven'})
+@pytest.mark.parametrize('obs_query_string, expected_dao_function', [
+    ('true', 'dao_find_observation_sites_by_name'),
+    ('', 'dao_find_sites_by_name'),
+])
+def test_results_calls_the_expected_dao_function(
+    mocker,
+    test_client,
+    obs_site,
+    obs_query_string,
+    expected_dao_function,
+):
+    dao_mock = mocker.patch('app.main.views.{}'.format(expected_dao_function))
+
+    search_term = 'silverley'
+    test_client.get(
+        url_for('main.results'),
+        query_string={'search-term': search_term, 'obs': obs_query_string, 'link': 'site'})
+
+    dao_mock.assert_called_once_with(search_term)
+
+
+@pytest.mark.parametrize('link_query_string, expected_page_link, expected_back_link', [
+    ('site', 'main.site', 'main.index'),
+    ('obs', 'main.site_observation', 'main.all_site_observations'),
+    ('fx', 'main.site_forecast', 'main.all_site_forecasts'),
+])
+def test_results_displays_the_links_on_the_page(
+    mocker,
+    test_client,
+    site,
+    link_query_string,
+    expected_page_link,
+    expected_back_link,
+):
+    mocker.patch('app.main.views.dao_find_sites_by_name', return_value=[site])
+    response = test_client.get(
+        url_for('main.results'),
+        query_string={'search-term': 'loch', 'link': link_query_string})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert len(page.find('p').find_all('a')) == 1
 
     site_link = page.find('a', string='Lochaven')
-    assert site_link['href'] == url_for('main.site',  site_id=99)
+    assert site_link['href'] == url_for(expected_page_link,  site_id=99)
+
+    back_link = page.find('a', string='Back')
+    assert back_link['href'] == url_for(expected_back_link)
 
 
 def test_results_displays_message_when_no_results_are_found(mocker, test_client):
     mocker.patch('app.main.views.dao_find_observation_sites_by_name', return_value=[])
-    response = test_client.get(url_for('main.results'), query_string={'search-term': 'lilliput'})
+    response = test_client.get(url_for('main.results'), query_string={'search-term': 'lilliput', 'link': 'obs'})
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert page.find('p').string == "We couldn't find that site."
