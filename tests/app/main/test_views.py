@@ -240,6 +240,9 @@ def test_site_details_for_site_with_observations(test_client, obs_site):
     response = test_client.get(url_for('main.site', site_id=obs_site.id))
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
+    assert page.find(id='mapid')
+    assert page.find(id='overview-map-id')
+
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Latitude: {}'.format(obs_site.latitude))
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Longitude: {}'.format(obs_site.longitude))
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Elevation: {} m'.format(obs_site.elevation))
@@ -251,6 +254,9 @@ def test_site_details_for_site_with_observations(test_client, obs_site):
 def test_site_details_for_site_without_observations(test_client, site):
     response = test_client.get(url_for('main.site', site_id=site.id))
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+
+    assert page.find(id='mapid')
+    assert page.find(id='overview-map-id')
 
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Latitude: {}'.format(site.latitude))
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Longitude: {}'.format(site.longitude))
