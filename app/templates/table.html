@@ -1,18 +1,20 @@
 {% macro table(data, headings) %}
-<table class="table table-striped table-responsive">
+<table class="table table-striped table-responsive table-sm">
   <thead>
     <tr>
       {% for header, _ in headings %}
-        <th scope="col">{{ header }}</th>
+        <th scope="col" class="text-center align-top">{{ header }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
   {% for date, content in data.items() %}
-    <tr>
-      <th scope="row">{{ date }}</th>
+    <tr class="text-center">
+      {% set show_date = loop.first or loop.previtem[0] | format_date !=  date | format_date %}
+      <th scope="row">{% if show_date %}{{ date | format_date }}{% endif %}</th>
+      <th scope="row">{{ date | format_time }}</th>
       {% for _, key in headings %}
-        {% if not loop.first %}
+        {% if loop.index > 2 %}
           <td>{{ data[date][key] }}</td>
         {% endif %}
       {% endfor %}

@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 import requests
 import requests_mock
+import pytz
 
 from app.datapoint_client.client import DatapointClient, validate_site
 from app.datapoint_client.errors import SiteError
@@ -90,7 +91,7 @@ def test_get_obs_for_site(mocker):
 
         observations = client.get_obs_for_site(site)
         assert len(observations) == 3
-        assert observations[datetime(2018, 3, 2, 23, 0)] == {
+        assert observations[datetime(2018, 3, 2, 23, 0, tzinfo=pytz.utc)] == {
             'Wind Direction': 'E',
             'Screen Relative Humidity': '94.4',
             'Pressure': '992',
@@ -115,7 +116,7 @@ def test_get_3hourly_forecasts_for_site(mocker):
 
         forecasts = client.get_3hourly_forecasts_for_site(site)
         assert len(forecasts) == 3
-        assert forecasts[datetime(2019, 4, 28, 18, 0)] == {
+        assert forecasts[datetime(2019, 4, 28, 18, 0, tzinfo=pytz.utc)] == {
             'Wind Direction': 'NNE',
             'Feels Like Temperature': '12',
             'Wind Gust': '16',

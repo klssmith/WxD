@@ -62,10 +62,15 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
-    dates = page.tbody.find_all('th')
-    assert dates[0].string == '2018-03-02 23:00:00'
-    assert dates[1].string == '2018-03-03 00:00:00'
-    assert dates[2].string == '2018-03-03 01:00:00'
+    dates_and_times = page.tbody.find_all('th')
+    assert len(dates_and_times) == 6
+
+    assert dates_and_times[0].string == 'Friday 02 Mar'
+    assert dates_and_times[1].string == '11pm'
+    assert dates_and_times[2].string == 'Saturday 03 Mar'
+    assert dates_and_times[3].string == '12am'
+    assert dates_and_times[4].string is None
+    assert dates_and_times[5].string == '1am'
 
     weather_obs = page.tbody.tr.find_all('td')
     assert weather_obs[0].string == 'Mist'
@@ -189,10 +194,15 @@ def test_site_forecast_displays_forecast_in_a_table(mocker, dp_client, test_clie
 
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
-    dates = page.tbody.find_all('th')
-    assert dates[0].string == '2019-04-28 18:00:00'
-    assert dates[1].string == '2019-04-28 21:00:00'
-    assert dates[2].string == '2019-04-29 00:00:00'
+    dates_and_times = page.tbody.find_all('th')
+    assert len(dates_and_times) == 6
+
+    assert dates_and_times[0].string == 'Sunday 28 Apr'
+    assert dates_and_times[1].string == '7pm'
+    assert dates_and_times[2].string is None
+    assert dates_and_times[3].string == '10pm'
+    assert dates_and_times[4].string == 'Monday 29 Apr'
+    assert dates_and_times[5].string == '1am'
 
     forecast = page.tbody.tr.find_all('td')
     assert forecast[0].string == 'Partly cloudy (day)'

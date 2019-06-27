@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+import pytz
 
 from app.datapoint_client.formatter import Formatter, ObsFormatter, WeatherFormatter
 from tests.json_fixtures.all_obs_for_site import obs_json
@@ -43,8 +44,8 @@ def test_formatter_formats_time_the_correct_number_of_times(mocker):
 
 
 @pytest.mark.parametrize('day, minutes, expected_result', [
-    ('2019-04-08Z', '0', datetime(2019, 4, 8, 0, 0)),
-    ('2019-04-08Z', '960', datetime(2019, 4, 8, 16, 0)),
+    ('2019-04-08Z', '0', datetime(2019, 4, 8, 0, 0, tzinfo=pytz.utc)),
+    ('2019-04-08Z', '960', datetime(2019, 4, 8, 16, 0, tzinfo=pytz.utc)),
 
 ])
 def test_formatter_formats_time(day, minutes, expected_result):
@@ -58,7 +59,7 @@ def test_obs_formatter_formats_observation():
     result = f.format(obs_data)
 
     assert len(result) == 3
-    assert result[datetime(2018, 3, 3, 0, 0)] == {
+    assert result[datetime(2018, 3, 3, 0, 0, tzinfo=pytz.utc)] == {
         'Wind Direction': 'ENE',
         'Screen Relative Humidity': '95.0',
         'Pressure': '992',
@@ -85,7 +86,7 @@ def test_wx_formatter_formats_forecast():
     result = f.format(fx_data)
 
     assert len(result) == 3
-    assert result[datetime(2019, 4, 28, 18, 0)] == {
+    assert result[datetime(2019, 4, 28, 18, 0, tzinfo=pytz.utc)] == {
         'Wind Direction': 'NNE',
         'Feels Like Temperature': '12',
         'Wind Gust': '16',

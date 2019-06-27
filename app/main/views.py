@@ -66,6 +66,7 @@ class ShowSingleOb(ShowSingleSite):
     template = 'observation_single_site.html'
     headings = [
         ('Date', ''),
+        ('Time', ''),
         ('Weather', 'Weather Type'),
         ('Temperature, °C', 'Temperature'),
         ('Dew point, °C', 'Dew Point'),
@@ -91,6 +92,7 @@ class ShowSingleForecast(ShowSingleSite):
     template = 'forecast_single_site.html'
     headings = [
         ('Date', ''),
+        ('Time', ''),
         ('Weather', 'Weather Type'),
         ('Temperature, °C', 'Temperature'),
         ('Feels like temperature, °C', 'Feels Like Temperature'),

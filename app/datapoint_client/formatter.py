@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from datetime import datetime
 
+import pytz
+
 from app.datapoint_client.definitions import FIELD_DESCRIPTORS, FORECAST_FIELD_DESCRIPTORS
 
 
@@ -28,7 +30,8 @@ class Formatter:
             int(day[0:4]),
             int(day[5:7]),
             int(day[8:10]),
-            int(mins) // 60
+            int(mins) // 60,
+            tzinfo=pytz.utc
         )
 
 
