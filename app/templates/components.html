@@ -1,0 +1,45 @@
+{% macro table(data, headings) %}
+<div>
+  <table class="table table-striped table-responsive table-sm">
+    <thead>
+      <tr>
+        {% for header, _ in headings %}
+          <th scope="col" class="text-center align-top">{{ header }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+    {% for date, content in data.items() %}
+      <tr class="text-center">
+        {% set show_date = loop.first or loop.previtem[0] | format_date !=  date | format_date %}
+        <th scope="row">{% if show_date %}{{ date | format_date }}{% endif %}</th>
+        <th scope="row">{{ date | format_time }}</th>
+        {% for _, key in headings %}
+          {% if loop.index > 2 %}
+            <td>{{ data[date][key] }}</td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+
+{% macro site_nav(site, page) %}
+<div class="mt-4 mb-5">
+  <ul class="list-group list-group-horizontal">
+    <li class="list-group-item list-group-item-{{'info' if page == 'about' else 'light'}}">
+      <a href="{{ url_for('main.site', site_id=site.id) }}">About the site</a>
+    </li>
+    <li class="list-group-item list-group-item-{{'info' if page == 'forecast' else 'light'}}">
+      <a href="{{ url_for('main.site_forecast', site_id=site.id) }}">Forecast</a>
+    </li>
+    {% if site.observations %}
+    <li class="list-group-item list-group-item-{{'info' if page == 'observation' else 'light'}}">
+      <a href="{{ url_for('main.site_observation', site_id=site.id) }}">Observations</a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endmacro %}
