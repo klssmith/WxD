@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
+{% import 'nav.html' as nav %}
 {% block content %}
 <div>
   <h1>{{ site.name }}</h1>
 </div>
-<hr />
+
+{{ nav.nav(site, 'about') }}
+
 <div class="row">
   <div class="col-md-3">
     <p><span class="font-weight-bold">Latitude: </span><span id="lat">{{ site.latitude }}</span></p>
@@ -14,24 +17,14 @@
   <div class="col-md-2 ml-3" id="overview-map-id"></div>
 </div>
 
-<hr />
-
-<div class="row">
-  {% if site.observations %}
-    <a class="btn btn-light btn-lg btn-link" href="{{ url_for('main.site_observation', site_id=site.id) }}">
-      {{ site.name }} observations</a>
-  {% endif %}&nbsp;
-  <a class="btn btn-light btn-lg btn-link" href="{{ url_for('main.site_forecast', site_id=site.id) }}">
-    {{ site.name }} forecast</a>
-</div>
 {% endblock %}
 
 {% block page_specific_js %}
 <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
   integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
   crossorigin=""></script>
-<script src="https://unpkg.com/esri-leaflet@2.2.4/dist/esri-leaflet.js"
-  integrity="sha512-tyPum7h2h36X52O2gz+Pe8z/3l+Y9S1yEUscbVs5r5aEY5dFmP1WWRY/WLLElnFHa+k1JBQZSCDGwEAnm2IxAQ=="
-  crossorigin=""></script>
+<script src="https://unpkg.com/esri-leaflet@2.3.0/dist/esri-leaflet.js"
+    integrity="sha512-1tScwpjXwwnm6tTva0l0/ZgM3rYNbdyMj5q6RSQMbNX6EUMhYDE3pMRGZaT41zHEvLoWEK7qFEJmZDOoDMU7/Q=="
+    crossorigin=""></script>
 <script src="{{ url_for('static', filename='map.js') }}" ></script>
 {% endblock %}

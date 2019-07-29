@@ -1,0 +1,18 @@
+{% macro nav(site, type) %}
+<div>
+  <ul class="list-group list-group-horizontal">
+    <li class="list-group-item list-group-item-{{'info' if type == 'about' else 'light'}}">
+      <a href="{{ url_for('main.site', site_id=site.id) }}">About the site</a>
+    </li>
+    <li class="list-group-item list-group-item-{{'info' if type == 'forecast' else 'light'}}">
+      <a href="{{ url_for('main.site_forecast', site_id=site.id) }}">Forecast</a>
+    </li>
+    {% if site.observations %}
+    <li class="list-group-item list-group-item-{{'info' if type == 'observation' else 'light'}}">
+      <a href="{{ url_for('main.site_observation', site_id=site.id) }}">Observations</a>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+<br />
+{% endmacro %}

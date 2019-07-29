@@ -2,6 +2,7 @@ import requests
 
 from app.datapoint_client.errors import SiteError
 from app.datapoint_client.formatter import ObsFormatter, WeatherFormatter
+# from app.redis_utils import get_ob_from_redis, is_site_in_redis, store_ob_in_redis
 
 
 def validate_site(data):
@@ -18,10 +19,14 @@ class DatapointClient:
         self.wx_formatter = wxformatter()
 
     def get_obs_for_site(self, site):
+        # if is_site_in_redis(site):
+        #     return get_ob_from_redis(site)
         url, payload = self.build_url_and_payload('hourly', 'wxobs', site)
         obs_json = self.make_request(url, payload)
         validate_site(obs_json)
 
+        # store_ob_in_redis(site, obs_json)
+#
         return self.format_data(obs_json, self.obs_formatter)
 
     def get_3hourly_forecasts_for_site(self, site):
