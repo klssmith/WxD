@@ -1,5 +1,3 @@
-import re
-
 from bs4 import BeautifulSoup
 import requests_mock
 import pytest
@@ -24,10 +22,10 @@ def test_all_site_observations_each_site_name_links_to_its_obs_page(test_client,
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     link_one = page.find('a', string='Farley Down')
-    assert link_one['href'] == url_for('main.site_observation',  site_id=1)
+    assert link_one['href'] == url_for('main.site_observation', site_id=1)
 
     link_two = page.find('a', string='Little Borwood')
-    assert link_two['href'] == url_for('main.site_observation',  site_id=2)
+    assert link_two['href'] == url_for('main.site_observation', site_id=2)
 
 
 def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, site):
@@ -45,7 +43,7 @@ def test_site_observation_shows_the_site_name(mocker, dp_client, test_client, si
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert response.status_code == 200
-    assert page.find('h1').string == 'Weather Observations for Lochaven'
+    assert page.find('h1').string == 'Lochaven - Observations'
 
 
 def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client, site):
@@ -131,7 +129,7 @@ def test_results_displays_the_links_on_the_page(
     assert len(page.find('p').find_all('a')) == 1
 
     site_link = page.find('a', string='Lochaven')
-    assert site_link['href'] == url_for(expected_page_link,  site_id=99)
+    assert site_link['href'] == url_for(expected_page_link, site_id=99)
 
     back_link = page.find('a', string='Back')
     assert back_link['href'] == url_for(expected_back_link)
@@ -156,10 +154,10 @@ def test_all_site_forecasts_shows_each_site_name_and_links_to_its_page(test_clie
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     link_one = page.find('a', string='Farley Down')
-    assert link_one['href'] == url_for('main.site_forecast',  site_id=1)
+    assert link_one['href'] == url_for('main.site_forecast', site_id=1)
 
     link_two = page.find('a', string='Little Borwood')
-    assert link_two['href'] == url_for('main.site_forecast',  site_id=2)
+    assert link_two['href'] == url_for('main.site_forecast', site_id=2)
 
 
 def test_site_forecast_shows_the_site_name(mocker, dp_client, test_client, site):
@@ -177,7 +175,7 @@ def test_site_forecast_shows_the_site_name(mocker, dp_client, test_client, site)
     page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
 
     assert response.status_code == 200
-    assert page.find('h1').string == 'Weather Forecast for Lochaven'
+    assert page.find('h1').string == 'Lochaven - Forecast'
 
 
 def test_site_forecast_displays_forecast_in_a_table(mocker, dp_client, test_client, site):
@@ -257,9 +255,6 @@ def test_site_details_for_site_with_observations(test_client, obs_site):
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Longitude: {}'.format(obs_site.longitude))
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Elevation: {} m'.format(obs_site.elevation))
 
-    assert page.find('a', string=re.compile('Silverley observations'))
-    assert page.find('a', string=re.compile('Silverley forecast'))
-
 
 def test_site_details_for_site_without_observations(test_client, site):
     response = test_client.get(url_for('main.site', site_id=site.id))
@@ -271,6 +266,3 @@ def test_site_details_for_site_without_observations(test_client, site):
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Latitude: {}'.format(site.latitude))
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Longitude: {}'.format(site.longitude))
     assert page.find(lambda tag: tag.name == 'p' and tag.text == 'Elevation: {} m'.format(site.elevation))
-
-    assert not page.find('a', string=re.compile('Lochaven observations'))
-    assert page.find('a', string=re.compile('Lochaven forecast'))

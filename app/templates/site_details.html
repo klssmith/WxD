@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
+{% from 'components.html' import site_nav %}
+
 {% block content %}
 <div>
   <h1>{{ site.name }}</h1>
 </div>
-<hr />
+
+{{ site_nav(site, page='about') }}
+
 <div class="row">
   <div class="col-md-3">
     <p><span class="font-weight-bold">Latitude: </span><span id="lat">{{ site.latitude }}</span></p>
@@ -11,19 +15,9 @@
     <p><span class="font-weight-bold">Elevation: </span>{{ site.elevation }} m</p>
   </div>
   <div class="col-md-6" id="mapid"></div>
-  <div class="col-md-2 ml-3" id="overview-map-id"></div>
+  <div class="col-md-2 ml-1" id="overview-map-id"></div>
 </div>
 
-<hr />
-
-<div class="row">
-  {% if site.observations %}
-    <a class="btn btn-light btn-lg btn-link" href="{{ url_for('main.site_observation', site_id=site.id) }}">
-      {{ site.name }} observations</a>
-  {% endif %}&nbsp;
-  <a class="btn btn-light btn-lg btn-link" href="{{ url_for('main.site_forecast', site_id=site.id) }}">
-    {{ site.name }} forecast</a>
-</div>
 {% endblock %}
 
 {% block page_specific_js %}

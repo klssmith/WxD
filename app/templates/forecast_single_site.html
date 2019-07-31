@@ -1,20 +1,13 @@
 {% extends 'base.html' %}
-{% import 'table.html' as table %}
+{% from 'components.html' import site_nav, table %}
+
 {% block content %}
 <div>
-  <h1>Weather Forecast for {{ site.name }}</h1>
+  <h1>{{ site.name }} - Forecast</h1>
 </div>
-<div>
-  <a href="{{ url_for('main.site', site_id=site.id) }}" class="badge badge-secondary">
-    About {{ site.name }}
-  </a>
-  {% if site.observations %}
-    <a href="{{ url_for('main.site_observation', site_id=site.id) }}" class="badge badge-secondary">
-      {{ site.name }} observations
-    </a>
-  {% endif %}
-</div>
-<div>
-  {{ table.table(data, headings) }}
-</div>
+
+{{ site_nav(site, page='forecast') }}
+
+{{ table(data, headings) }}
+
 {% endblock %}
