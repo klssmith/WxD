@@ -5,8 +5,8 @@ import pytest
 from flask import url_for
 
 from app import db
-from app.datapoint_client.errors import SiteError
 from app.models import Site
+from datapoint_client.errors import SiteError
 from tests.json_fixtures.all_obs_for_site import obs_json
 from tests.json_fixtures.forecast_for_site import three_hourly_fx_json
 
@@ -77,7 +77,7 @@ def test_site_observation_displays_obs_in_a_table(mocker, dp_client, test_client
 
 
 def test_get_site_observation_returns_404_with_invalid_site_id(mocker, test_client):
-    mocker.patch('app.datapoint_client.client.DatapointClient.get_obs_for_site', side_effect=SiteError)
+    mocker.patch('datapoint_client.client.DatapointClient.get_obs_for_site', side_effect=SiteError)
     site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
 
     response = test_client.get(url_for('main.site_observation', site_id=1000))
@@ -209,7 +209,7 @@ def test_site_forecast_displays_forecast_in_a_table(mocker, dp_client, test_clie
 
 
 def test_get_site_forecast_returns_404_with_invalid_site_id(mocker, test_client):
-    mocker.patch('app.datapoint_client.client.DatapointClient.get_3hourly_forecasts_for_site', side_effect=SiteError)
+    mocker.patch('datapoint_client.client.DatapointClient.get_3hourly_forecasts_for_site', side_effect=SiteError)
     site_mock = mocker.patch('app.main.views.dao_get_site_by_id')
 
     response = test_client.get(url_for('main.site_forecast', site_id=1000))

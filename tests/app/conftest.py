@@ -1,8 +1,8 @@
 import pytest
 
 from app import db
-from app.datapoint_client.client import DatapointClient
 from app.models import Site
+from datapoint_client.client import DatapointClient
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from pytz import timezone
 
 from app.config import configs
-from app.datapoint_client.client import DatapointClient
+from datapoint_client.client import DatapointClient
 
 
 db = SQLAlchemy()

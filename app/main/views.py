@@ -3,7 +3,6 @@ from flask import Blueprint, abort, render_template, request
 from flask.views import View
 
 from app import client
-from app.datapoint_client.errors import SiteError
 from app.models import Site
 from app.site_dao import (
     dao_find_sites_by_name,
@@ -12,6 +11,7 @@ from app.site_dao import (
     dao_get_all_sites_with_observations,
     dao_get_site_by_id,
 )
+from datapoint_client.errors import SiteError
 
 
 main = Blueprint('main', __name__)
