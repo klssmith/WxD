@@ -5,7 +5,7 @@ import requests
 import requests_mock
 import pytz
 
-from app.datapoint_client.client import DatapointClient, validate_site
+from app.datapoint_client.client import DatapointClient, ObsFormatter, WeatherFormatter, validate_site
 from app.datapoint_client.errors import SiteError
 from tests.json_fixtures.all_obs_for_site import obs_json
 from tests.json_fixtures.forecast_for_site import three_hourly_fx_json
@@ -26,50 +26,25 @@ def test_validate_site_with_invalid_site_raises_an_error():
     assert str(e.value) == 'Site ID used is not valid'
 
 
-def test_datapoint_client_build_url_and_payload(mocker):
-    client = DatapointClient('123', mocker.Mock(), mocker.Mock())
-    url, payload = client.build_url_and_payload('hourly', 'wxfcs', 1000)
+def test_get_obs_for_site(mocker, site):
+    mocker.patch('app.datapoint_client.client.CacheRequester.get_obs', return_value=obs_json)
+    mocker.patch.object(ObsFormatter, 'format', return_value='formatted data')
 
-    assert url == client.BASE_URL + 'val/wxfcs/all/json/1000'
-    assert payload == {'key': client.api_key, 'res': 'hourly'}
-
-
-def test_datapoint_client_make_request(mocker):
-    client = DatapointClient('123', mocker.Mock(), mocker.Mock())
-    url = 'http://www.example.com'
-    payload = {'key': client.api_key, 'res': 'hourly'}
-
-    with requests_mock.Mocker() as m:
-        m.get(
-            '{url}?key={api_key}&res={res}'.format(url=url, api_key=payload['key'], res=payload['res']),
-            complete_qs=True,
-            json="the weather"
-        )
-        response = client.make_request('http://www.example.com/', payload)
-
-    assert response == 'the weather'
+    client = DatapointClient('123')
+    assert client.get_obs_for_site(site.id) == 'formatted data'
 
 
-def test_datapoint_client_make_request_when_bad_status_code_returned(mocker):
-    client = DatapointClient('123', mocker.Mock(), mocker.Mock())
-    url = 'http://www.example.com'
-    payload = {'key': client.api_key, 'res': 'hourly'}
+def test_get_3hourly_forecasts_for_site(mocker, site):
+    mocker.patch('app.datapoint_client.client.CacheRequester.get_3hourly_forecasts', return_value=three_hourly_fx_json)
+    mocker.patch.object(WeatherFormatter, 'format', return_value='formatted data')
 
-    with pytest.raises(requests.exceptions.HTTPError) as e, requests_mock.Mocker() as m:
-        m.get(
-            '{url}?key={api_key}&res={res}'.format(url=url, api_key=payload['key'], res=payload['res']),
-            complete_qs=True,
-            status_code=403
-        )
-        client.make_request('http://www.example.com/', payload)
-
-    assert m.called
-    assert '403 Client Error' in str(e.value)
+    client = DatapointClient('123')
+    assert client.get_3hourly_forecasts_for_site(site.id) == 'formatted data'
 
 
 def test_datapoint_client_format_data(mocker):
     formatter = mocker.Mock()
-    client = DatapointClient('123', formatter, formatter)
+    client = DatapointClient('123')
     data = {'SiteRep': {'DV': {'Location': {'Period': 'my_weather'}}}}
 
     client.format_data(data, formatter)
@@ -78,7 +53,10 @@ def test_datapoint_client_format_data(mocker):
     assert formatter.method_calls[0] == mocker.call.format('my_weather')
 
 
-def test_get_obs_for_site(mocker):
+# CLIENT FEATURE TESTS
+def test_feature_get_obs_for_site(mocker):
+    mocker.patch('app.datapoint_client.requesters.redis.Redis.get', return_value=None)
+
     site = 1000
     client = DatapointClient('123')
 
@@ -103,7 +81,9 @@ def test_get_obs_for_site(mocker):
             'Dew Point': '-0.5'}
 
 
-def test_get_3hourly_forecasts_for_site(mocker):
+def test_feature_get_3hourly_forecasts_for_site(mocker):
+    mocker.patch('app.datapoint_client.requesters.redis.Redis.get', return_value=None)
+
     site = 1000
     client = DatapointClient('123')
 

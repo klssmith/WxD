@@ -49,3 +49,8 @@ def test_db_session(test_db):
     test_db.session.remove()
     for tbl in reversed(test_db.metadata.sorted_tables):
         test_db.engine.execute(tbl.delete())
+
+
+@pytest.fixture(scope='session', autouse=True)
+def thing():
+    raise Exception()

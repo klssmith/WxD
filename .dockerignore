@@ -1,0 +1,5 @@
+environment.sh
+.pytest_cache/
+
+tests
+migrations
