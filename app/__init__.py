@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import Flask
@@ -12,9 +13,25 @@ from datapoint_client.client import DatapointClient
 db = SQLAlchemy()
 migrate = Migrate()
 client = DatapointClient(os.getenv('DATAPOINT_API_KEY'))
+logger = logging.getLogger(__name__)
 local_time = timezone('Europe/London')
 
 from app.main.views import main as main_blueprint # noqa
+
+
+# logging.basicConfig(filename='example.log', level=logging.DEBUG)
+
+dp_client_logger = logging.getLogger('datapoint_client')
+
+file_handler = logging.FileHandler('example.log')
+stream_handler = logging.StreamHandler()
+
+logger.setLevel(logging.DEBUG)
+dp_client_logger.setLevel(logging.DEBUG)
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+dp_client_logger.addHandler(stream_handler)
 
 
 def format_date(datetime):
@@ -41,3 +58,7 @@ def create_app():
     app.jinja_env.filters['format_time'] = format_time
 
     return app
+
+
+# def logger_stuff():
+#     level = configs[app.env]
