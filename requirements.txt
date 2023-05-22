@@ -3,5 +3,5 @@ Flask-Migrate==2.5.2
 Flask-SQLAlchemy==2.4.0
 psycopg2-binary==2.8.3
 pytz==2019.1
-requests==2.22.0
+requests==2.31.0
 git+https://github.com/klssmith/datapoint-client.git@master#egg=datapoint-client==0.0.1
